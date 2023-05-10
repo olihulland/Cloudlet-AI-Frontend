@@ -13,19 +13,27 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Data } from "./pages/Data";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { io } from "socket.io-client";
+import { PreProcessing } from "./pages/PreProcessing";
 
 export interface PageProps {
-  setCurrentPhase: (phase: string | undefined) => void;
+  setStepInfo: (info: StepInfo | undefined) => void;
+}
+
+export interface StepInfo {
+  currentPhase: string;
+  nextStep?: string;
+  prevStep?: string;
 }
 
 export const App = () => {
-  const [currentPhase, setCurrentPhase] = useState<string | undefined>(
-    undefined
-  );
+  const [currentStepInfo, setCurrentStepInfo] = useState<
+    StepInfo | undefined
+  >();
   const [socketInstance, setSocketInstance] = useState<any>();
 
   const queryClient = new QueryClient();
 
+  // websocket for when data updated
   useEffect(() => {
     const socket = io(`${process.env.REACT_APP_API_WS}`, {
       transports: ["websocket"],
@@ -58,16 +66,20 @@ export const App = () => {
     <QueryClientProvider client={queryClient}>
       <ChakraProvider theme={theme}>
         <Router>
-          <Header currentPhase={currentPhase} />
+          <Header stepInfo={currentStepInfo} />
 
           <Routes>
             <Route
               path="/"
-              element={<Intro setCurrentPhase={setCurrentPhase} />}
+              element={<Intro setStepInfo={setCurrentStepInfo} />}
             />
             <Route
               path="/data"
-              element={<Data setCurrentPhase={setCurrentPhase} />}
+              element={<Data setStepInfo={setCurrentStepInfo} />}
+            />
+            <Route
+              path="/pre-processing"
+              element={<PreProcessing setStepInfo={setCurrentStepInfo} />}
             />
             <Route
               path="*"

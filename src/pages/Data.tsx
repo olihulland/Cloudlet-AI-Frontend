@@ -24,7 +24,7 @@ import { getData } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 
-export const Data = ({ setCurrentPhase }: PageProps) => {
+export const Data = ({ setStepInfo }: PageProps) => {
   const getDataQuery: { data: APIData | undefined; [key: string]: any } =
     useQuery("getData", getData);
 
@@ -33,8 +33,11 @@ export const Data = ({ setCurrentPhase }: PageProps) => {
     useState<RecordInstance>();
 
   useEffect(() => {
-    setCurrentPhase("Data Collection");
-  }, [setCurrentPhase]);
+    setStepInfo({
+      currentPhase: "Data Collection",
+      nextStep: "/pre-processing",
+    });
+  }, [setStepInfo]);
 
   useEffect(() => {
     console.log("data", getDataQuery.data);

@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { PageProps } from "../App";
 
-export const Intro = ({ setCurrentPhase }: PageProps) => {
+export const Intro = ({ setStepInfo }: PageProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setCurrentPhase(undefined);
-  }, [setCurrentPhase]);
+    setStepInfo(undefined);
+  }, [setStepInfo]);
 
   return (
     <Container maxWidth="container.xl" px={10}>

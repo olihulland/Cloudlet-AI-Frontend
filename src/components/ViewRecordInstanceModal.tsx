@@ -7,7 +7,6 @@ import {
   ModalOverlay,
   ModalBody,
   Flex,
-  Heading,
   Text,
   TableContainer,
   Table,
