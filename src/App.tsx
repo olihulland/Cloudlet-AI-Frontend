@@ -14,9 +14,12 @@ import { Data } from "./pages/Data";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { io } from "socket.io-client";
 import { PreProcessing } from "./pages/PreProcessing";
+import { WorkingData } from "./data/types";
 
 export interface PageProps {
   setStepInfo: (info: StepInfo | undefined) => void;
+  workingData?: WorkingData;
+  setWorkingData?: (data: WorkingData | undefined) => void;
 }
 
 export interface StepInfo {
@@ -29,10 +32,13 @@ export const App = () => {
   const [currentStepInfo, setCurrentStepInfo] = useState<
     StepInfo | undefined
   >();
+  const [workingData, setWorkingData] = useState<WorkingData | undefined>();
+
   const [socketInstance, setSocketInstance] = useState<any>();
 
   const queryClient = new QueryClient();
 
+  // TODO only have this fetching new data when on the data page
   // websocket for when data updated
   useEffect(() => {
     const socket = io(`${process.env.REACT_APP_API_WS}`, {
@@ -75,11 +81,23 @@ export const App = () => {
             />
             <Route
               path="/data"
-              element={<Data setStepInfo={setCurrentStepInfo} />}
+              element={
+                <Data
+                  setStepInfo={setCurrentStepInfo}
+                  workingData={workingData}
+                  setWorkingData={setWorkingData}
+                />
+              }
             />
             <Route
               path="/pre-processing"
-              element={<PreProcessing setStepInfo={setCurrentStepInfo} />}
+              element={
+                <PreProcessing
+                  setStepInfo={setCurrentStepInfo}
+                  workingData={workingData}
+                  setWorkingData={setWorkingData}
+                />
+              }
             />
             <Route
               path="*"

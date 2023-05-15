@@ -24,7 +24,7 @@ import { getData } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 
-export const Data = ({ setStepInfo }: PageProps) => {
+export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
   const getDataQuery: { data: APIData | undefined; [key: string]: any } =
     useQuery("getData", getData);
 
@@ -39,9 +39,17 @@ export const Data = ({ setStepInfo }: PageProps) => {
     });
   }, [setStepInfo]);
 
+  // set working data based on selected data
   useEffect(() => {
     console.log("data", getDataQuery.data);
-  }, [getDataQuery.data]);
+    if (getDataQuery.data) {
+      setWorkingData?.({
+        data: getDataQuery.data,
+      });
+    } else {
+      setWorkingData?.(undefined);
+    }
+  }, [getDataQuery.data, setWorkingData]);
 
   return (
     <>
