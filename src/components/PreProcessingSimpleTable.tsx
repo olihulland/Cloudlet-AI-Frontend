@@ -21,7 +21,7 @@ import {
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { round } from "mathjs";
-import { getFriendlyMicrobitID } from "../data/utils";
+import { getClassName, getFriendlyMicrobitID } from "../data/utils";
 
 interface Props {
   featureVectorGenerator: (data: RecordInstance) => RecordInstanceProcessed;
@@ -95,7 +95,8 @@ export const PreProcessingSimpleTable = ({
                   <Td>{record.uniqueID}</Td>
                   <Td>
                     {record.classification != null
-                      ? record.classification
+                      ? workingData.data !== undefined &&
+                        getClassName(record.classification, workingData.data)
                       : "Not Set"}
                   </Td>
                   <Td>
@@ -109,29 +110,6 @@ export const PreProcessingSimpleTable = ({
                 </Tr>
               )
             )}
-
-            {/*{getDataQuery.data?.record_instances.map((record: RecordInstance) => (*/}
-            {/*  <Tr key={record.uniqueID}>*/}
-            {/*    <Td>{record.deviceID}</Td>*/}
-            {/*    <Td>{record.uniqueID}</Td>*/}
-            {/*    <Td>*/}
-            {/*      {record.classification != null*/}
-            {/*        ? record.classification*/}
-            {/*        : "Not Set"}*/}
-            {/*    </Td>*/}
-            {/*    <Td>*/}
-            {/*      <Button*/}
-            {/*        onClick={() => {*/}
-            {/*          console.log(record);*/}
-            {/*          setOpenRecordInstance(record);*/}
-            {/*          viewRecordDisclosure.onOpen();*/}
-            {/*        }}*/}
-            {/*      >*/}
-            {/*        View*/}
-            {/*      </Button>*/}
-            {/*    </Td>*/}
-            {/*  </Tr>*/}
-            {/*))}*/}
           </Tbody>
         </Table>
       </TableContainer>

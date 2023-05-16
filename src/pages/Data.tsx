@@ -14,20 +14,45 @@ import {
   Tr,
   Th,
   Td,
+  Text,
+  HStack,
   Button,
   useDisclosure,
+  Flex,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Card,
+  CardBody,
+  StatHelpText,
+  Box,
+  Input,
+  IconButton,
+  Spacer,
+  Popover,
+  PopoverTrigger,
+  PopoverHeader,
+  PopoverContent,
+  PopoverCloseButton,
+  PopoverBody,
+  PopoverArrow,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageProps } from "../App";
-import { useQuery } from "react-query";
-import { getData } from "../data/api";
+import { useMutation, useQuery } from "react-query";
+import { getData, setClassName } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
-import { getFriendlyMicrobitID } from "../data/utils";
+import { getClassName, getFriendlyMicrobitID } from "../data/utils";
+import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 
 export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
   const getDataQuery: { data: APIData | undefined; [key: string]: any } =
     useQuery("getData", getData);
+
+  const classNameMutation = useMutation({
+    mutationFn: setClassName,
+  });
 
   const viewRecordDisclosure = useDisclosure();
   const [openRecordInstance, setOpenRecordInstance] =
@@ -52,75 +77,225 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
     }
   }, [getDataQuery.data, setWorkingData]);
 
+  const classesList = useMemo(() => {
+    return getDataQuery.data?.record_instances
+      .reduce((acc, curr) => {
+        return acc.includes(curr.classification)
+          ? acc
+          : [...acc, curr.classification];
+      }, [] as number[])
+      .sort();
+  }, [getDataQuery.data]);
+
+  const STATS_BANNER = (
+    <Flex gap={3} mb={5} justifyContent={"space-evenly"}>
+      <Card flexGrow={1}>
+        <CardBody>
+          <Stat>
+            <StatLabel>Number of recordings</StatLabel>
+            <StatNumber>
+              {getDataQuery.data?.record_instances.length}
+            </StatNumber>
+          </Stat>
+        </CardBody>
+      </Card>
+      <Card flexGrow={1}>
+        <CardBody>
+          <Stat>
+            <StatLabel>Number of classes</StatLabel>
+            <StatNumber>{classesList?.length}</StatNumber>
+          </Stat>
+        </CardBody>
+      </Card>
+      <Card flexGrow={1}>
+        <CardBody>
+          <Stat>
+            <StatLabel>Number of known microbits</StatLabel>
+            <StatNumber>{getDataQuery.data?.microbits.length}</StatNumber>
+            <StatHelpText>(known to the cloud)</StatHelpText>
+          </Stat>
+        </CardBody>
+      </Card>
+      <Card flexGrow={1}>
+        <CardBody>
+          <Stat>
+            <StatLabel>Number of contributing microbits</StatLabel>
+            <StatNumber>
+              {
+                getDataQuery.data?.record_instances.reduce((acc, curr) => {
+                  return acc.includes(curr.deviceID)
+                    ? acc
+                    : [...acc, curr.deviceID];
+                }, [] as any[]).length
+              }
+            </StatNumber>
+            <StatHelpText>(contributed recordings)</StatHelpText>
+          </Stat>
+        </CardBody>
+      </Card>
+    </Flex>
+  );
+
+  const CLASS_SECTION = (
+    <Box mb={3}>
+      <Heading>Classes</Heading>
+      <TableContainer>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Class Number</Th>
+              <Th>Class Name</Th>
+              <Th>Number of Recordings</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {classesList?.map((classID: number) => (
+              <Tr key={classID}>
+                <Td>{classID}</Td>
+                <Td>
+                  <HStack>
+                    <Text>
+                      {
+                        getDataQuery.data?.classes.find(
+                          (classObj) =>
+                            classObj.id.toString() === classID.toString()
+                        )?.name
+                      }
+                    </Text>
+                    <Spacer />
+                    <Popover>
+                      <PopoverTrigger>
+                        <IconButton
+                          aria-label={"Edit Class Name"}
+                          icon={<EditIcon />}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>New Class Name</PopoverHeader>
+                        <PopoverBody>
+                          <VStack>
+                            <Input
+                              placeholder={"Class Name"}
+                              id={"cn:" + classID.toString()}
+                            />
+                            <Button
+                              onClick={() => {
+                                const newClassName = (
+                                  document.getElementById(
+                                    "cn:" + classID.toString()
+                                  ) as HTMLInputElement
+                                ).value;
+                                console.log(newClassName);
+                                classNameMutation.mutate({
+                                  id: classID,
+                                  name: newClassName,
+                                });
+                              }}
+                              rightIcon={<CheckIcon />}
+                            >
+                              Submit
+                            </Button>
+                          </VStack>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </HStack>
+                </Td>
+                <Td>
+                  {
+                    getDataQuery.data?.record_instances.filter(
+                      (record) => record.classification === classID
+                    ).length
+                  }
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+
+  const RAW_DATA_SECTION = (
+    <>
+      <Heading>Raw Data</Heading>
+      {getDataQuery.isLoading && (
+        <VStack>
+          <Spinner size={"xl"} />
+          <Heading size={"md"}>Loading Data ...</Heading>
+        </VStack>
+      )}
+      {getDataQuery.isError && (
+        <Container>
+          <Alert status="error">
+            <AlertIcon />
+            <AlertTitle>Error Loading Data</AlertTitle>
+          </Alert>
+        </Container>
+      )}
+      {getDataQuery.isSuccess && (
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>MicroBit ID</Th>
+                <Th>Record ID</Th>
+                <Th>Class</Th>
+                <Th></Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {getDataQuery.data?.record_instances.map(
+                (record: RecordInstance) => (
+                  <Tr key={record.uniqueID}>
+                    <Td>
+                      {getDataQuery.data !== undefined &&
+                      getFriendlyMicrobitID(
+                        record.deviceID,
+                        getDataQuery.data
+                      ) != undefined
+                        ? getFriendlyMicrobitID(
+                            record.deviceID,
+                            getDataQuery.data
+                          )
+                        : record.deviceID}
+                    </Td>
+                    <Td>{record.uniqueID}</Td>
+                    <Td>
+                      {record.classification != null
+                        ? getDataQuery.data !== undefined &&
+                          getClassName(record.classification, getDataQuery.data)
+                        : "Not Set"}
+                    </Td>
+                    <Td>
+                      <Button
+                        onClick={() => {
+                          console.log(record);
+                          setOpenRecordInstance(record);
+                          viewRecordDisclosure.onOpen();
+                        }}
+                      >
+                        View
+                      </Button>
+                    </Td>
+                  </Tr>
+                )
+              )}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
+    </>
+  );
+
   return (
     <>
       <Container maxWidth="container.xl" px={10}>
-        <Heading>Raw Data</Heading>
-        {getDataQuery.isLoading && (
-          <VStack>
-            <Spinner size={"xl"} />
-            <Heading size={"md"}>Loading Data ...</Heading>
-          </VStack>
-        )}
-        {getDataQuery.isError && (
-          <Container>
-            <Alert status="error">
-              <AlertIcon />
-              <AlertTitle>Error Loading Data</AlertTitle>
-            </Alert>
-          </Container>
-        )}
-        {getDataQuery.isSuccess && (
-          <TableContainer>
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>MicroBit ID</Th>
-                  <Th>Record ID</Th>
-                  <Th>Class</Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {getDataQuery.data?.record_instances.map(
-                  (record: RecordInstance) => (
-                    <Tr key={record.uniqueID}>
-                      <Td>
-                        {getDataQuery.data !== undefined &&
-                        getFriendlyMicrobitID(
-                          record.deviceID,
-                          getDataQuery.data
-                        ) != undefined
-                          ? getFriendlyMicrobitID(
-                              record.deviceID,
-                              getDataQuery.data
-                            )
-                          : record.deviceID}
-                      </Td>
-                      <Td>{record.uniqueID}</Td>
-                      <Td>
-                        {record.classification != null
-                          ? record.classification
-                          : "Not Set"}
-                      </Td>
-                      <Td>
-                        <Button
-                          onClick={() => {
-                            console.log(record);
-                            setOpenRecordInstance(record);
-                            viewRecordDisclosure.onOpen();
-                          }}
-                        >
-                          View
-                        </Button>
-                      </Td>
-                    </Tr>
-                  )
-                )}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        )}
+        {STATS_BANNER}
+        {CLASS_SECTION}
+        {RAW_DATA_SECTION}
       </Container>
       <ViewRecordInstanceModal
         viewRecordDisclosure={viewRecordDisclosure}

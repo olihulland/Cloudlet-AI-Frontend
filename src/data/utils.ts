@@ -9,3 +9,15 @@ export const getFriendlyMicrobitID = (
   );
   return microbit?.friendlyID;
 };
+
+export const getClassName = (
+  classification: number,
+  data: APIData | DataProcessed
+) => {
+  const classInfo = data.classes.find(
+    (classInfo) => classInfo.id.toString() === classification.toString()
+  );
+  return classInfo?.name == null || classInfo.name === ""
+    ? classification
+    : classInfo.name;
+};

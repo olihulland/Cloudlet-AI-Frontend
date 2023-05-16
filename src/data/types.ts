@@ -5,11 +5,18 @@ export interface WorkingData {
 export interface APIData {
   record_instances: RecordInstance[];
   microbits: Microbit[];
+  classes: ClassInfo[];
 }
 
 export interface DataProcessed {
   record_instances: RecordInstanceProcessed[];
   microbits: Microbit[];
+  classes: ClassInfo[];
+}
+
+export interface ClassInfo {
+  id: number;
+  name: string;
 }
 
 export interface Microbit {

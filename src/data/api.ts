@@ -9,9 +9,25 @@ export const deleteRecord = async (id: string) => {
     method: "DELETE",
   });
   const status = response.status;
-  if (status > 200 && status < 300) {
-    return true;
-  } else {
-    return false;
-  }
+  return status > 200 && status < 300;
+};
+
+export const setClassName = async ({
+  id,
+  name,
+}: {
+  id: number;
+  name: string;
+}) => {
+  let formdata = new FormData();
+  formdata.append("name", name);
+  const response = await fetch(
+    `${process.env.REACT_APP_API_URL}/name-class/${id}`,
+    {
+      method: "POST",
+      body: formdata,
+    }
+  );
+  const status = response.status;
+  return status > 200 && status < 300;
 };
