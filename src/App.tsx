@@ -15,6 +15,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { io } from "socket.io-client";
 import { PreProcessing } from "./pages/PreProcessing";
 import { WorkingData } from "./data/types";
+import { ModelTraining } from "./pages/ModelTraining";
 
 export interface PageProps {
   setStepInfo: (info: StepInfo | undefined) => void;
@@ -93,6 +94,16 @@ export const App = () => {
               path="/pre-processing"
               element={
                 <PreProcessing
+                  setStepInfo={setCurrentStepInfo}
+                  workingData={workingData}
+                  setWorkingData={setWorkingData}
+                />
+              }
+            />
+            <Route
+              path="/model-training"
+              element={
+                <ModelTraining
                   setStepInfo={setCurrentStepInfo}
                   workingData={workingData}
                   setWorkingData={setWorkingData}

@@ -20,6 +20,7 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { round } from "mathjs";
 
 interface Props {
   featureVectorGenerator: (data: RecordInstance) => RecordInstanceProcessed;
@@ -41,7 +42,12 @@ export const PreProcessingSimpleTable = ({
       let newWorkingData = workingData;
       newWorkingData.data.record_instances =
         newWorkingData.data.record_instances.map((record: RecordInstance) => {
-          return featureVectorGenerator(record);
+          try {
+            return featureVectorGenerator(record);
+          } catch (e) {
+            console.error("Error processing record: ", record, "Error: ", e);
+            return record;
+          }
         });
       setWorkingData(newWorkingData);
       setDataProcessed(true);
@@ -89,7 +95,7 @@ export const PreProcessingSimpleTable = ({
                     {record.featureVector
                       .map((num) => {
                         if (!num) return num;
-                        return num.toFixed(0);
+                        return round(num, 1);
                       })
                       .toString()}
                   </Td>

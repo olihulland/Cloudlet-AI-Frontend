@@ -7,10 +7,18 @@ export const preProcessMovement = (
 ): RecordInstanceProcessed => {
   // xMax, xMin, xStd, xPeaks, yMax, yMin, yStd, yPeaks, zMax, zMin, zStd, zPeaks, meanStrength
 
-  const xValues = data.data.map((dataPoint: any) => dataPoint.x);
-  const yValues = data.data.map((dataPoint: any) => dataPoint.y);
-  const zValues = data.data.map((dataPoint: any) => dataPoint.z);
-  const sValues = data.data.map((dataPoint: any) => dataPoint.s);
+  const xValues = data.data
+    .map((dataPoint: any) => dataPoint.x)
+    .filter((x) => x !== undefined);
+  const yValues = data.data
+    .map((dataPoint: any) => dataPoint.y)
+    .filter((y) => y !== undefined);
+  const zValues = data.data
+    .map((dataPoint: any) => dataPoint.z)
+    .filter((z) => z !== undefined);
+  const sValues = data.data
+    .map((dataPoint: any) => dataPoint.s)
+    .filter((s) => s !== undefined);
 
   const xMax = math.max(xValues);
   const xMin = math.min(xValues);
