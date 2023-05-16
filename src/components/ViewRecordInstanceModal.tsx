@@ -15,7 +15,14 @@ import {
   Th,
   Tbody,
   Td,
+  IconButton,
+  Box,
+  Spacer,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
+import { useEffect, useState } from "react";
+import { useMutation } from "react-query";
+import { deleteRecord } from "../data/api";
 
 interface Props {
   viewRecordDisclosure: any;
@@ -37,6 +44,13 @@ export const ViewRecordInstanceModal = ({
     return keys;
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteRecord,
+    onSuccess: () => {
+      viewRecordDisclosure.onClose();
+    },
+  });
+
   return (
     <Modal
       isOpen={viewRecordDisclosure.isOpen}
@@ -49,22 +63,38 @@ export const ViewRecordInstanceModal = ({
         <ModalHeader>View Recording</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Flex gap={5}>
-            <Text>
-              <b>Record ID:</b> {openRecordInstance?.uniqueID}
-            </Text>
-            <Text>
-              <b>Micro:bit ID:</b> {openRecordInstance?.deviceID}
-            </Text>
+          <Flex>
+            <Box>
+              <Flex gap={5}>
+                <Text>
+                  <b>Record ID:</b> {openRecordInstance?.uniqueID}
+                </Text>
+                <Text>
+                  <b>Micro:bit ID:</b> {openRecordInstance?.deviceID}
+                </Text>
+              </Flex>
+
+              <Text>
+                <b>Class:</b> {openRecordInstance?.classification}
+              </Text>
+
+              <Text>
+                <b>Number of Data Points: </b> {openRecordInstance?.data.length}
+              </Text>
+            </Box>
+            <Spacer />
+            <IconButton
+              aria-label={"Delete"}
+              icon={<DeleteIcon />}
+              colorScheme={"red"}
+              isLoading={deleteMutation.isLoading}
+              onClick={() => {
+                console.log("delete");
+                if (openRecordInstance !== undefined)
+                  deleteMutation.mutate(openRecordInstance.uniqueID);
+              }}
+            />
           </Flex>
-
-          <Text>
-            <b>Class:</b> {openRecordInstance?.classification}
-          </Text>
-
-          <Text>
-            <b>Number of Data Points: </b> {openRecordInstance?.data.length}
-          </Text>
 
           <TableContainer>
             <Table>
