@@ -36,11 +36,12 @@ import {
   PopoverCloseButton,
   PopoverBody,
   PopoverArrow,
+  CardHeader,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { PageProps } from "../App";
 import { useMutation, useQuery } from "react-query";
-import { getData, setClassName } from "../data/api";
+import { getData, ident, setClassName } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 import { getClassName, getFriendlyMicrobitID } from "../data/utils";
@@ -131,6 +132,13 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
             </StatNumber>
             <StatHelpText>(contributed recordings)</StatHelpText>
           </Stat>
+        </CardBody>
+      </Card>
+      <Card flexGrow={1}>
+        <CardBody>
+          <VStack>
+            <Button onClick={ident}>Identify Micro:bits</Button>
+          </VStack>
         </CardBody>
       </Card>
     </Flex>

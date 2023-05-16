@@ -31,3 +31,7 @@ export const setClassName = async ({
   const status = response.status;
   return status > 200 && status < 300;
 };
+
+export const ident = async () => {
+  await fetch(`${process.env.REACT_APP_API_URL}/ident`);
+};
