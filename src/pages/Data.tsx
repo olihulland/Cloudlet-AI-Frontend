@@ -23,6 +23,7 @@ import { useQuery } from "react-query";
 import { getData } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
+import { getFriendlyMicrobitID } from "../data/utils";
 
 export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
   const getDataQuery: { data: APIData | undefined; [key: string]: any } =
@@ -84,7 +85,18 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
                 {getDataQuery.data?.record_instances.map(
                   (record: RecordInstance) => (
                     <Tr key={record.uniqueID}>
-                      <Td>{record.deviceID}</Td>
+                      <Td>
+                        {getDataQuery.data !== undefined &&
+                        getFriendlyMicrobitID(
+                          record.deviceID,
+                          getDataQuery.data
+                        ) != undefined
+                          ? getFriendlyMicrobitID(
+                              record.deviceID,
+                              getDataQuery.data
+                            )
+                          : record.deviceID}
+                      </Td>
                       <Td>{record.uniqueID}</Td>
                       <Td>
                         {record.classification != null

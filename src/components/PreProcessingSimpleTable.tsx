@@ -21,6 +21,7 @@ import {
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { round } from "mathjs";
+import { getFriendlyMicrobitID } from "../data/utils";
 
 interface Props {
   featureVectorGenerator: (data: RecordInstance) => RecordInstanceProcessed;
@@ -84,7 +85,13 @@ export const PreProcessingSimpleTable = ({
               // @ts-ignore
               (record: RecordInstanceProcessed) => (
                 <Tr key={record.uniqueID}>
-                  <Td>{record.deviceID}</Td>
+                  <Td>
+                    {workingData !== undefined &&
+                    getFriendlyMicrobitID(record.deviceID, workingData.data) !=
+                      undefined
+                      ? getFriendlyMicrobitID(record.deviceID, workingData.data)
+                      : record.deviceID}
+                  </Td>
                   <Td>{record.uniqueID}</Td>
                   <Td>
                     {record.classification != null

@@ -4,10 +4,17 @@ export interface WorkingData {
 
 export interface APIData {
   record_instances: RecordInstance[];
+  microbits: Microbit[];
 }
 
 export interface DataProcessed {
   record_instances: RecordInstanceProcessed[];
+  microbits: Microbit[];
+}
+
+export interface Microbit {
+  deviceID: string;
+  friendlyID: number;
 }
 
 export interface RecordInstance {
