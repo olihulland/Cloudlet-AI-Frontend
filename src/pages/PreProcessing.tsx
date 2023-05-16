@@ -25,10 +25,29 @@ export const PreProcessing = ({
       currentPhase: "Data Pre-Processing",
       nextStep: "/model-training",
       prevStep: "/data",
+      allowNext: false,
     });
   }, [setStepInfo]);
 
   const [preset, setPreset] = React.useState<string | undefined>();
+
+  useEffect(() => {
+    if (preset !== undefined && preset !== "") {
+      setStepInfo({
+        currentPhase: "Data Pre-Processing",
+        nextStep: "/model-training",
+        prevStep: "/data",
+        allowNext: true,
+      });
+    } else {
+      setStepInfo({
+        currentPhase: "Data Pre-Processing",
+        nextStep: "/model-training",
+        prevStep: "/data",
+        allowNext: false,
+      });
+    }
+  }, [preset]);
 
   return (
     <>

@@ -10,6 +10,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
       currentPhase: "Model Training",
       nextStep: "/next?",
       prevStep: "/pre-processing",
+      allowNext: false,
     });
   }, [setStepInfo]);
 
@@ -41,8 +42,8 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
     features = data.map((value) => value.feature);
     labels = data.map((value) => value.label);
 
-    const featureTensor = tf.tensor2d(features);
-    const labelTensor = tf.tensor1d(labels);
+    const featureTensor = tf.tensor(features);
+    const labelTensor = tf.tensor(labels);
 
     return {
       features: featureTensor,

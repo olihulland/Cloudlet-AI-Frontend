@@ -27,6 +27,7 @@ export interface StepInfo {
   currentPhase: string;
   nextStep?: string;
   prevStep?: string;
+  allowNext?: boolean;
 }
 
 export const App = () => {

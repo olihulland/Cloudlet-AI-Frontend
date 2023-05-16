@@ -80,6 +80,7 @@ export const Header = ({ stepInfo }: { stepInfo: StepInfo | undefined }) => {
                   if (stepInfo && stepInfo.nextStep)
                     navigate(stepInfo?.nextStep);
                 }}
+                isDisabled={stepInfo?.allowNext === false}
               />
             </>
           )}
