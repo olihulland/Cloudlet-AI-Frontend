@@ -1,3 +1,5 @@
+import { CommonOperations } from "./pre-processing/CommonOperations";
+
 export interface WorkingData {
   data: APIData | DataProcessed;
 }
@@ -45,3 +47,19 @@ export interface AccelDataPoint extends DataPoint {
   z: number;
   s: number;
 }
+
+export interface Feature {
+  name: string;
+  description: string;
+  calculate: FeatureCalculator;
+}
+
+export type FeatureCalculator =
+  | FeatureCalculatorFunction
+  | CommonFeatureCalculator;
+
+export type FeatureCalculatorFunction = (data: RecordInstance) => number;
+export type CommonFeatureCalculator = {
+  op: CommonOperations;
+  key: string;
+};

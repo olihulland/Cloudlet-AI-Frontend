@@ -1,4 +1,7 @@
 import {
+  CommonFeatureCalculator,
+  Feature,
+  FeatureCalculatorFunction,
   RecordInstance,
   RecordInstanceProcessed,
   WorkingData,
@@ -7,7 +10,6 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
-  Button,
   Center,
   Spinner,
   Table,
@@ -19,42 +21,67 @@ import {
   Tr,
 } from "@chakra-ui/react";
 import * as React from "react";
-import { useEffect, useState } from "react";
-import { round } from "mathjs";
+import { useEffect, useMemo, useState } from "react";
+import * as math from "mathjs";
 import { getClassName, getFriendlyMicrobitID } from "../data/utils";
+import { solveFeature } from "../data/pre-processing/CommonOperations";
 
 interface Props {
-  featureVectorGenerator: (data: RecordInstance) => RecordInstanceProcessed;
+  features: Feature[];
   setWorkingData?: (newData: WorkingData) => void;
   workingData?: WorkingData;
 }
 
 export const PreProcessingSimpleTable = ({
-  featureVectorGenerator,
+  features,
   workingData,
   setWorkingData,
 }: Props) => {
-  const [dataProcessed, setDataProcessed] = useState<boolean>(false);
+  const [isProcessed, setisProcessed] = useState<boolean>(false);
+
+  const processedData = useMemo(() => {
+    let toReturn: { [key: string]: any[] } = {};
+    if (workingData !== undefined) {
+      for (const record of workingData.data.record_instances) {
+        toReturn[record.uniqueID] = [];
+        for (const feature of features) {
+          const processedFeature: any = { ...feature };
+          let res = solveFeature(feature, record);
+          console.log(record.uniqueID, " ", feature.name, " = ", res);
+          processedFeature["result"] = res;
+          toReturn[record.uniqueID].push({ ...processedFeature });
+        }
+      }
+    }
+    return toReturn;
+  }, [features, workingData]);
 
   useEffect(() => {
-    if (workingData !== undefined && setWorkingData !== undefined) {
-      console.log("begin processing");
-
-      let newWorkingData = workingData;
-      newWorkingData.data.record_instances =
-        newWorkingData.data.record_instances.map((record: RecordInstance) => {
-          try {
-            return featureVectorGenerator(record);
-          } catch (e) {
-            console.error("Error processing record: ", record, "Error: ", e);
-            return record;
-          }
-        });
-      setWorkingData(newWorkingData);
-      setDataProcessed(true);
-      console.log("processed: ", newWorkingData);
+    if (
+      workingData !== undefined &&
+      setWorkingData !== undefined &&
+      processedData !== undefined
+    ) {
+      if (Object.keys(processedData).length > 0) {
+        let newWorkingData = workingData;
+        newWorkingData.data.record_instances =
+          newWorkingData.data.record_instances
+            .map((record: RecordInstance) => {
+              let newRecord = record as RecordInstanceProcessed;
+              newRecord.featureVector = processedData[record.uniqueID].map(
+                (proc: any) => proc.result
+              );
+              return newRecord;
+            })
+            .sort((a, b) => {
+              return a.classification - b.classification;
+            });
+        setWorkingData(newWorkingData);
+        setisProcessed(true);
+        console.log("processed: ", newWorkingData);
+      }
     }
-  }, [featureVectorGenerator, setWorkingData, workingData]);
+  }, [processedData, workingData, setWorkingData]);
 
   if (workingData === undefined) {
     return (
@@ -68,16 +95,17 @@ export const PreProcessingSimpleTable = ({
     );
   }
 
-  if (dataProcessed) {
+  if (isProcessed) {
     return (
       <TableContainer>
         <Table>
           <Thead>
             <Tr>
-              <Th>MicroBit ID</Th>
-              <Th>Record ID</Th>
               <Th>Class</Th>
-              <Th>Feature Vector</Th>
+              <Th>|</Th>
+              {Object.values(processedData)[0].map((feature) => {
+                return <Th>{feature.name}</Th>;
+              })}
             </Tr>
           </Thead>
           <Tbody>
@@ -86,27 +114,15 @@ export const PreProcessingSimpleTable = ({
               (record: RecordInstanceProcessed) => (
                 <Tr key={record.uniqueID}>
                   <Td>
-                    {workingData !== undefined &&
-                    getFriendlyMicrobitID(record.deviceID, workingData.data) !=
-                      undefined
-                      ? getFriendlyMicrobitID(record.deviceID, workingData.data)
-                      : record.deviceID}
-                  </Td>
-                  <Td>{record.uniqueID}</Td>
-                  <Td>
                     {record.classification != null
                       ? workingData.data !== undefined &&
                         getClassName(record.classification, workingData.data)
                       : "Not Set"}
                   </Td>
-                  <Td>
-                    {record.featureVector
-                      .map((num) => {
-                        if (!num) return num;
-                        return round(num, 1);
-                      })
-                      .toString()}
-                  </Td>
+                  <Td></Td>
+                  {processedData[record.uniqueID].map((feature) => {
+                    return <Td>{math.round(feature.result, 1)}</Td>;
+                  })}
                 </Tr>
               )
             )}

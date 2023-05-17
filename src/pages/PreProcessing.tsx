@@ -13,7 +13,7 @@ import {
 import * as React from "react";
 
 import { PreProcessingSimpleTable } from "../components/PreProcessingSimpleTable";
-import { preProcessMovement } from "../data/pre-processing/movement";
+import { movementFeatures } from "../data/pre-processing/movement";
 
 export const PreProcessing = ({
   setStepInfo,
@@ -69,7 +69,7 @@ export const PreProcessing = ({
         </FormControl>
         {preset && preset === "movement" && (
           <PreProcessingSimpleTable
-            featureVectorGenerator={preProcessMovement}
+            features={movementFeatures}
             setWorkingData={setWorkingData}
             workingData={workingData}
           />
