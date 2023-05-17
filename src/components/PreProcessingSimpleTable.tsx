@@ -1,7 +1,5 @@
 import {
-  CommonFeatureCalculator,
   Feature,
-  FeatureCalculatorFunction,
   RecordInstance,
   RecordInstanceProcessed,
   WorkingData,
@@ -10,6 +8,7 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  Badge,
   Center,
   Spinner,
   Table,
@@ -23,7 +22,7 @@ import {
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import * as math from "mathjs";
-import { getClassName, getFriendlyMicrobitID } from "../data/utils";
+import { getClassName } from "../data/utils";
 import { solveFeature } from "../data/pre-processing/CommonOperations";
 
 interface Props {
@@ -41,13 +40,12 @@ export const PreProcessingSimpleTable = ({
 
   const processedData = useMemo(() => {
     let toReturn: { [key: string]: any[] } = {};
-    if (workingData !== undefined) {
+    if (workingData !== undefined && workingData.data !== undefined) {
       for (const record of workingData.data.record_instances) {
         toReturn[record.uniqueID] = [];
         for (const feature of features) {
           const processedFeature: any = { ...feature };
           let res = solveFeature(feature, record);
-          console.log(record.uniqueID, " ", feature.name, " = ", res);
           processedFeature["result"] = res;
           toReturn[record.uniqueID].push({ ...processedFeature });
         }
@@ -64,28 +62,30 @@ export const PreProcessingSimpleTable = ({
     ) {
       if (Object.keys(processedData).length > 0) {
         let newWorkingData = workingData;
-        newWorkingData.data.record_instances =
-          newWorkingData.data.record_instances
-            .map((record: RecordInstance) => {
-              let newRecord = record as RecordInstanceProcessed;
-              newRecord.featureVector = processedData[record.uniqueID].map(
-                (proc: any) => proc.result
-              );
-              return newRecord;
-            })
-            .sort((a, b) => {
-              return a.classification - b.classification;
-            });
-        setWorkingData(newWorkingData);
-        setisProcessed(true);
-        console.log("processed: ", newWorkingData);
+        if (newWorkingData.data !== undefined) {
+          newWorkingData.data.record_instances =
+            newWorkingData.data.record_instances
+              .map((record: RecordInstance) => {
+                let newRecord = record as RecordInstanceProcessed;
+                newRecord.featureVector = processedData[record.uniqueID].map(
+                  (proc: any) => proc.result
+                );
+                return newRecord;
+              })
+              .sort((a, b) => {
+                return a.classification - b.classification;
+              });
+          setWorkingData(newWorkingData);
+          setisProcessed(true);
+          console.log("processed: ", newWorkingData);
+        }
       }
     }
   }, [processedData, workingData, setWorkingData]);
 
   if (workingData === undefined) {
     return (
-      <Alert>
+      <Alert status={"warning"}>
         <AlertIcon />
         <AlertTitle>
           No data selected. Please go back to the data collection step and
@@ -109,15 +109,17 @@ export const PreProcessingSimpleTable = ({
             </Tr>
           </Thead>
           <Tbody>
-            {workingData?.data.record_instances.map(
+            {workingData?.data?.record_instances.map(
               // @ts-ignore
               (record: RecordInstanceProcessed) => (
                 <Tr key={record.uniqueID}>
                   <Td>
-                    {record.classification != null
-                      ? workingData.data !== undefined &&
-                        getClassName(record.classification, workingData.data)
-                      : "Not Set"}
+                    <Badge colorScheme={"purple"}>
+                      {record.classification != null
+                        ? workingData.data !== undefined &&
+                          getClassName(record.classification, workingData.data)
+                        : "Not Set"}
+                    </Badge>
                   </Td>
                   <Td></Td>
                   {processedData[record.uniqueID].map((feature) => {

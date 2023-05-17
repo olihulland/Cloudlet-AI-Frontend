@@ -1,7 +1,10 @@
 import { CommonOperations } from "./pre-processing/CommonOperations";
+import { ProcessingPresets } from "./pre-processing/presets";
 
 export interface WorkingData {
-  data: APIData | DataProcessed;
+  data: APIData | DataProcessed | undefined;
+  features?: Feature[];
+  selectedPreset?: ProcessingPresets;
 }
 
 export interface APIData {

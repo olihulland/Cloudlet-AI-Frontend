@@ -2,6 +2,7 @@ import * as math from "mathjs";
 import {
   CommonFeatureCalculator,
   Feature,
+  FeatureCalculator,
   FeatureCalculatorFunction,
   RecordInstance,
 } from "../types";
@@ -47,3 +48,6 @@ export const solveFeature = (feature: Feature, record: RecordInstance) => {
     return (feature.calculate as FeatureCalculatorFunction)(record);
   }
 };
+
+export const isCommon = (featureCalc: FeatureCalculator) =>
+  (featureCalc as CommonFeatureCalculator).op !== undefined;

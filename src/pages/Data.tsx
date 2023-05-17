@@ -37,6 +37,7 @@ import {
   PopoverBody,
   PopoverArrow,
   CardHeader,
+  Badge,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { PageProps } from "../App";
@@ -47,7 +48,11 @@ import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 import { getClassName, getFriendlyMicrobitID } from "../data/utils";
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 
-export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
+export const Data = ({
+  setStepInfo,
+  setWorkingData,
+  workingData,
+}: PageProps) => {
   const getDataQuery: { data: APIData | undefined; [key: string]: any } =
     useQuery("getData", getData);
 
@@ -68,13 +73,16 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
 
   // set working data based on selected data
   useEffect(() => {
-    console.log("data", getDataQuery.data);
     if (getDataQuery.data) {
       setWorkingData?.({
+        ...workingData,
         data: getDataQuery.data,
       });
     } else {
-      setWorkingData?.(undefined);
+      setWorkingData?.({
+        ...workingData,
+        data: undefined,
+      });
     }
   }, [getDataQuery.data, setWorkingData]);
 
@@ -162,14 +170,14 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
                 <Td>{classID}</Td>
                 <Td>
                   <HStack>
-                    <Text>
+                    <Badge colorScheme={"purple"}>
                       {
                         getDataQuery.data?.classes.find(
                           (classObj) =>
                             classObj.id.toString() === classID.toString()
                         )?.name
                       }
-                    </Text>
+                    </Badge>
                     <Spacer />
                     <Popover>
                       <PopoverTrigger>
@@ -195,7 +203,6 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
                                     "cn:" + classID.toString()
                                   ) as HTMLInputElement
                                 ).value;
-                                console.log(newClassName);
                                 classNameMutation.mutate({
                                   id: classID,
                                   name: newClassName,
@@ -272,15 +279,19 @@ export const Data = ({ setStepInfo, setWorkingData }: PageProps) => {
                     </Td>
                     <Td>{record.uniqueID}</Td>
                     <Td>
-                      {record.classification != null
-                        ? getDataQuery.data !== undefined &&
-                          getClassName(record.classification, getDataQuery.data)
-                        : "Not Set"}
+                      <Badge colorScheme={"purple"}>
+                        {record.classification != null
+                          ? getDataQuery.data !== undefined &&
+                            getClassName(
+                              record.classification,
+                              getDataQuery.data
+                            )
+                          : "Not Set"}
+                      </Badge>
                     </Td>
                     <Td>
                       <Button
                         onClick={() => {
-                          console.log(record);
                           setOpenRecordInstance(record);
                           viewRecordDisclosure.onOpen();
                         }}

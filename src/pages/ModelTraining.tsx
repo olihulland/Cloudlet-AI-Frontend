@@ -18,7 +18,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   const [model, setModel] = useState<tf.Sequential | undefined>(undefined);
 
   const trainingDataTensors = useMemo(() => {
-    if (!workingData) return undefined;
+    if (!workingData || workingData.data === undefined) return undefined;
 
     let features = workingData.data.record_instances.map(
       (instance: any) => instance.featureVector
@@ -52,7 +52,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   }, [workingData]);
 
   const numClasses = useMemo(() => {
-    if (!workingData) return undefined;
+    if (!workingData || workingData.data === undefined) return undefined;
     let count = 0;
     let seen: number[] = [];
     workingData.data.record_instances.forEach((instance: any) => {

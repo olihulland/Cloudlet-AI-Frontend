@@ -40,7 +40,6 @@ export const ViewRecordInstanceModal = ({
         if (!keys.includes(dpKey)) keys.push(dpKey);
       });
     });
-    console.log("keys", keys);
     return keys;
   };
 
@@ -89,7 +88,6 @@ export const ViewRecordInstanceModal = ({
               colorScheme={"red"}
               isLoading={deleteMutation.isLoading}
               onClick={() => {
-                console.log("delete");
                 if (openRecordInstance !== undefined)
                   deleteMutation.mutate(openRecordInstance.uniqueID);
               }}
