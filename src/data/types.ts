@@ -57,9 +57,7 @@ export interface Feature {
   calculate: FeatureCalculator;
 }
 
-export type FeatureCalculator =
-  | FeatureCalculatorFunction
-  | CommonFeatureCalculator;
+export type FeatureCalculator = string | CommonFeatureCalculator;
 
 export type FeatureCalculatorFunction = (data: RecordInstance) => number;
 export type CommonFeatureCalculator = {

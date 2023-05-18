@@ -37,15 +37,21 @@ export const doCommonOperation = (
 export const getValueList = (data: RecordInstance, key: string) => {
   return data.data
     .map((dataPoint: any) => dataPoint[key])
-    .filter((z) => z !== undefined);
+    .filter((val) => val !== undefined);
 };
 
 export const solveFeature = (feature: Feature, record: RecordInstance) => {
   if ((feature.calculate as CommonFeatureCalculator).op !== undefined) {
     const cFC = feature.calculate as CommonFeatureCalculator;
     return doCommonOperation(cFC.op, cFC.key, record);
+  } else if (feature.calculate !== undefined) {
+    let fn = new Function(
+      "record",
+      feature.calculate.toString()
+    ) as FeatureCalculatorFunction;
+    return fn(record);
   } else {
-    return (feature.calculate as FeatureCalculatorFunction)(record);
+    return 0;
   }
 };
 

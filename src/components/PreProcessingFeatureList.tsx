@@ -1,6 +1,8 @@
 import { Feature, WorkingData } from "../data/types";
-import { VStack } from "@chakra-ui/react";
+import { Button, VStack } from "@chakra-ui/react";
 import { PreProcessingFeatureTile } from "./PreProcessingFeatureTile";
+import { AddIcon } from "@chakra-ui/icons";
+import { CommonOperations } from "../data/pre-processing/CommonOperations";
 
 export const PreProcessingFeatureList = ({
   features,
@@ -37,13 +39,34 @@ export const PreProcessingFeatureList = ({
             key={index}
             setFeature={(newFeature) => {
               let newFeatures = [...features];
-              newFeatures[index] = newFeature;
+              if (newFeature === undefined) newFeatures.splice(index, 1);
+              else newFeatures[index] = newFeature;
               setFeatures(newFeatures);
             }}
             possibleKeys={possibleKeys}
+            workingData={workingData}
           />
         );
       })}
+      <Button
+        w={"full"}
+        leftIcon={<AddIcon />}
+        colorScheme={"green"}
+        onClick={() => {
+          let newFeatures = [...features];
+          newFeatures.push({
+            name: "New Feature",
+            description: "Description",
+            calculate: {
+              op: CommonOperations.Mean,
+              key: possibleKeys[0],
+            },
+          });
+          setFeatures(newFeatures);
+        }}
+      >
+        Add Feature
+      </Button>
     </VStack>
   );
 };

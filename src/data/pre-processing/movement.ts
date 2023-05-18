@@ -1,5 +1,4 @@
-import { Feature, RecordInstance, RecordInstanceProcessed } from "../types";
-import * as math from "mathjs";
+import { Feature, RecordInstance } from "../types";
 import { CommonOperations, getValueList } from "./CommonOperations";
 
 export const movementFeatures: Feature[] = [
@@ -30,20 +29,25 @@ export const movementFeatures: Feature[] = [
   {
     name: "xPeaks",
     description: "Number of peaks in x values",
-    calculate: (data: RecordInstance) => {
-      const mult = 3;
-      let xPeaks = 0;
-      const xValues = getValueList(data, "x");
-      const xMean = math.mean(xValues);
-      const xStd = math.std(xValues, "unbiased");
-      for (let i = 0; i < xValues.length; i++) {
-        const x = xValues[i];
-        if (x > xMean + mult * xStd) {
-          xPeaks++;
-        }
-      }
-      return xPeaks;
-    },
+    calculate: `
+const mult = 3;
+let xPeaks = 0;
+const xValues = record.data
+  .map((dataPoint) => dataPoint["x"])
+  .filter((val) => val !== undefined);
+const xMean = xValues.reduce((a, b) => a + b, 0) / xValues.length;
+const xStd = Math.sqrt(
+  xValues.map((x) => Math.pow(x - xMean, 2)).reduce((a, b) => a + b, 0) /
+    xValues.length
+);
+for (let i = 0; i < xValues.length; i++) {
+  const x = xValues[i];
+  if (x > xMean + mult * xStd) {
+    xPeaks++;
+  }
+}
+return xPeaks;
+    `,
   },
   {
     name: "yMax",
@@ -72,20 +76,25 @@ export const movementFeatures: Feature[] = [
   {
     name: "yPeaks",
     description: "Number of peaks in y values",
-    calculate: (data: RecordInstance) => {
-      const mult = 3;
-      let yPeaks = 0;
-      const yValues = getValueList(data, "y");
-      const yMean = math.mean(yValues);
-      const yStd = math.std(yValues, "unbiased");
-      for (let i = 0; i < yValues.length; i++) {
-        const y = yValues[i];
-        if (y > yMean + mult * yStd) {
-          yPeaks++;
-        }
-      }
-      return yPeaks;
-    },
+    calculate: `
+const mult = 3;
+let yPeaks = 0;
+const yValues = record.data
+  .map((dataPoint) => dataPoint["y"])
+  .filter((val) => val !== undefined);
+const yMean = yValues.reduce((a, b) => a + b, 0) / yValues.length;
+const yStd = Math.sqrt(
+  yValues.map((y) => Math.pow(y - yMean, 2)).reduce((a, b) => a + b, 0) /
+    yValues.length
+);
+for (let i = 0; i < yValues.length; i++) {
+  const y = yValues[i];
+  if (y > yMean + mult * yStd) {
+    yPeaks++;
+  }
+}
+return yPeaks;
+`,
   },
   {
     name: "zMax",
@@ -114,20 +123,23 @@ export const movementFeatures: Feature[] = [
   {
     name: "zPeaks",
     description: "Number of peaks in z values",
-    calculate: (data: RecordInstance) => {
-      const mult = 3;
-      let zPeaks = 0;
-      const zValues = getValueList(data, "z");
-      const zMean = math.mean(zValues);
-      const zStd = math.std(zValues, "unbiased");
-      for (let i = 0; i < zValues.length; i++) {
-        const z = zValues[i];
-        if (z > zMean + mult * zStd) {
-          zPeaks++;
-        }
-      }
-      return zPeaks;
-    },
+    calculate: `const mult = 3;
+let zPeaks = 0;
+const zValues = record.data
+  .map((dataPoint) => dataPoint["z"])
+  .filter((val) => val !== undefined);
+const zMean = zValues.reduce((a, b) => a + b, 0) / zValues.length;
+const zStd = Math.sqrt(
+  zValues.map((z) => Math.pow(z - zMean, 2)).reduce((a, b) => a + b, 0) /
+    zValues.length
+);
+for (let i = 0; i < zValues.length; i++) {
+  const z = zValues[i];
+  if (z > zMean + mult * zStd) {
+    zPeaks++;
+  }
+}
+return zPeaks;`,
   },
   {
     name: "meanStrength",
