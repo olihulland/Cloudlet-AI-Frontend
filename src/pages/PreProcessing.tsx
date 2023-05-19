@@ -42,10 +42,6 @@ export const PreProcessing = ({
   };
 
   useEffect(() => {
-    console.log("WD ", workingData);
-  });
-
-  useEffect(() => {
     setStepInfo(stepInfoTemplate);
   }, [setStepInfo]);
 
