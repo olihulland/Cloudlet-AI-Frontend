@@ -77,7 +77,6 @@ export const PreProcessingSimpleTable = ({
               });
           setWorkingData(newWorkingData);
           setisProcessed(true);
-          console.log("processed: ", newWorkingData);
         }
       }
     }

@@ -29,60 +29,71 @@ export const PreProcessing = ({
   workingData,
   setWorkingData,
 }: PageProps) => {
+  const [preset, setPreset] = useState<ProcessingPresets>();
+  const [features, setFeatures] = useState<Feature[]>(
+    workingData?.features || []
+  );
+
+  const stepInfoTemplate = {
+    currentPhase: "Data Pre-Processing",
+    nextStep: "/model-training",
+    prevStep: "/data",
+    allowNext: false,
+  };
+
   useEffect(() => {
-    setStepInfo({
-      currentPhase: "Data Pre-Processing",
-      nextStep: "/model-training",
-      prevStep: "/data",
-      allowNext: false,
-    });
+    console.log("WD ", workingData);
+  });
+
+  useEffect(() => {
+    setStepInfo(stepInfoTemplate);
   }, [setStepInfo]);
 
-  const [preset, setPreset] = useState<ProcessingPresets>(
-    ProcessingPresets.custom
-  );
-  const [features, setFeatures] = useState<Feature[]>([]);
+  useEffect(() => {
+    if (workingData && workingData.features) setFeatures(workingData.features);
+    if (workingData && workingData.selectedPreset)
+      setPreset(workingData.selectedPreset);
+  }, [workingData]);
 
   useEffect(() => {
-    if (preset !== undefined) {
-      setStepInfo({
-        currentPhase: "Data Pre-Processing",
-        nextStep: "/model-training",
-        prevStep: "/data",
-        allowNext: true,
-      });
+    if (features.length > 0)
+      setStepInfo({ ...stepInfoTemplate, allowNext: true });
+    else setStepInfo({ ...stepInfoTemplate, allowNext: false });
 
-      console.log("preset change", preset);
-      switch (preset) {
-        case ProcessingPresets.custom:
-          setFeatures([]);
-          break;
-        case ProcessingPresets.movement:
-          setFeatures(movementFeatures);
-          break;
-      }
-    } else {
-      setStepInfo({
-        currentPhase: "Data Pre-Processing",
-        nextStep: "/model-training",
-        prevStep: "/data",
-        allowNext: false,
-      });
-    }
-  }, [preset]);
-
-  useEffect(() => {
+    // if edit to preset then switch to "Create your own"
     if (
-      setWorkingData !== undefined &&
-      features !== undefined &&
-      workingData !== undefined
+      preset &&
+      preset !== ProcessingPresets.custom &&
+      features !== getPresetFeatures(preset) &&
+      workingData &&
+      setWorkingData
     ) {
+      setPreset(ProcessingPresets.custom);
       setWorkingData({
         ...workingData,
-        features: features,
+        selectedPreset: ProcessingPresets.custom,
       });
     }
-  }, [features, setWorkingData]);
+  }, [features]);
+
+  const getPresetFeatures = (preset: ProcessingPresets) => {
+    switch (preset) {
+      case ProcessingPresets.custom:
+        return [];
+      case ProcessingPresets.movement:
+        return movementFeatures;
+    }
+  };
+
+  const changePreset = (preset: ProcessingPresets) => {
+    if (workingData && setWorkingData) {
+      setWorkingData({
+        ...workingData,
+        features: getPresetFeatures(preset),
+        selectedPreset: preset,
+      });
+    }
+  };
 
   return (
     <>
@@ -92,7 +103,7 @@ export const PreProcessing = ({
           <FormLabel>Select pre-processing preset:</FormLabel>
           <Select
             onChange={(e) => {
-              setPreset(e.target.value as ProcessingPresets);
+              changePreset(e.target.value as ProcessingPresets);
             }}
             value={preset}
           >
@@ -110,12 +121,7 @@ export const PreProcessing = ({
             This should be selected to best suit your application.
           </FormHelperText>
         </FormControl>
-        <Accordion
-          defaultIndex={features.length < 1 ? [0, 1] : [1]}
-          allowMultiple
-          allowToggle
-          my={5}
-        >
+        <Accordion defaultIndex={[0, 1]} allowMultiple allowToggle my={5}>
           <AccordionItem>
             <AccordionButton>
               <Heading size={"lg"} my={4}>
@@ -129,6 +135,7 @@ export const PreProcessing = ({
                 features={features}
                 setFeatures={setFeatures}
                 workingData={workingData}
+                setWorkingData={setWorkingData}
               />
             </AccordionPanel>
           </AccordionItem>
@@ -141,7 +148,7 @@ export const PreProcessing = ({
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel>
-              {preset !== undefined && features.length > 0 ? (
+              {features.length > 0 ? (
                 <PreProcessingSimpleTable
                   features={features}
                   setWorkingData={setWorkingData}

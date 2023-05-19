@@ -8,10 +8,12 @@ export const PreProcessingFeatureList = ({
   features,
   setFeatures,
   workingData,
+  setWorkingData,
 }: {
   features: Feature[];
   setFeatures: (newFeatures: Feature[]) => void;
   workingData: WorkingData | undefined;
+  setWorkingData: ((newWorkingData: WorkingData) => void) | undefined;
 }) => {
   const calculatePossibleKeys = () => {
     if (!workingData) return [];
@@ -28,6 +30,16 @@ export const PreProcessingFeatureList = ({
     return toReturn;
   };
 
+  const updateFeatures = (updatedFeatures: Feature[]) => {
+    setFeatures(updatedFeatures);
+    if (setWorkingData && workingData) {
+      setWorkingData({
+        ...workingData,
+        features: updatedFeatures,
+      });
+    }
+  };
+
   const possibleKeys = calculatePossibleKeys();
 
   return (
@@ -41,7 +53,7 @@ export const PreProcessingFeatureList = ({
               let newFeatures = [...features];
               if (newFeature === undefined) newFeatures.splice(index, 1);
               else newFeatures[index] = newFeature;
-              setFeatures(newFeatures);
+              updateFeatures(newFeatures);
             }}
             possibleKeys={possibleKeys}
             workingData={workingData}
@@ -62,7 +74,7 @@ export const PreProcessingFeatureList = ({
               key: possibleKeys[0],
             },
           });
-          setFeatures(newFeatures);
+          updateFeatures(newFeatures);
         }}
       >
         Add Feature
