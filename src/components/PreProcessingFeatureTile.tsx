@@ -218,7 +218,11 @@ return 0;`,
               <>
                 <Modal
                   isOpen={codeEditorDisclosure.isOpen}
-                  onClose={codeEditorDisclosure.onClose}
+                  onClose={() => {
+                    if (code !== feature.calculate.toString())
+                      setCode(feature.calculate.toString());
+                    codeEditorDisclosure.onClose();
+                  }}
                   size={"5xl"}
                 >
                   <ModalOverlay />
@@ -262,6 +266,7 @@ return 0;`,
                             setCode(feature.calculate.toString());
                           }}
                           colorScheme={"red"}
+                          leftIcon={<DeleteIcon />}
                         >
                           Reset
                         </Button>
