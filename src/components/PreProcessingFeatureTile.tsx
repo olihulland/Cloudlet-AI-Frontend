@@ -1,8 +1,4 @@
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   Box,
   Button,
   Card,
@@ -21,18 +17,11 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   Code,
 } from "@chakra-ui/react";
-import {
-  CloseIcon,
-  EditIcon,
-  RepeatIcon,
-  DeleteIcon,
-  CheckIcon,
-} from "@chakra-ui/icons";
+import { EditIcon, RepeatIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import {
   CommonFeatureCalculator,
   Feature,
@@ -266,9 +255,7 @@ return 0;`,
                           fontSize: 12,
                         }}
                       />
-                    </ModalBody>
-                    <ModalFooter>
-                      <Flex gap={2} mt={2} w={"full"}>
+                      <Flex gap={2} mt={5} mb={3} w={"full"}>
                         <Button
                           isDisabled={code === feature.calculate.toString()}
                           onClick={() => {
@@ -280,12 +267,11 @@ return 0;`,
                         </Button>
                         <Spacer />
                         <Button
-                          onClick={() => {
-                            viewJSONDisclosure.onOpen();
-                          }}
+                          onClick={viewJSONDisclosure.onToggle}
                           colorScheme={"blue"}
                         >
-                          View first record
+                          {viewJSONDisclosure.isOpen ? "Hide" : "Show"} first
+                          record
                         </Button>
                         <Button
                           isDisabled={codeError}
@@ -313,46 +299,29 @@ return 0;`,
                         <Spacer />
                         {saveButton}
                       </Flex>
-                    </ModalFooter>
+
+                      {viewJSONDisclosure.isOpen && (
+                        <Box mt={5}>
+                          <Center mb={3}>
+                            <Heading size={"sm"}>First Record:</Heading>
+                          </Center>
+
+                          <Box px={5} pb={5}>
+                            <JSONPretty
+                              id="json-pretty"
+                              data={{
+                                ...workingData?.data?.record_instances[0],
+                                featureVector: undefined,
+                              }}
+                              theme={JSONPrettyTheme}
+                              mainStyle="padding:1em"
+                            />
+                          </Box>
+                        </Box>
+                      )}
+                    </ModalBody>
                   </ModalContent>
                 </Modal>
-                <AlertDialog
-                  leastDestructiveRef={cancelRef}
-                  isOpen={viewJSONDisclosure.isOpen}
-                  onClose={viewJSONDisclosure.onClose}
-                  size={"5xl"}
-                >
-                  <AlertDialogOverlay>
-                    <AlertDialogContent>
-                      <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                        <Flex>
-                          <Center>
-                            <Heading size={"sm"}>First Record</Heading>
-                          </Center>
-                          <Spacer />
-                          <IconButton
-                            aria-label={"Close"}
-                            onClick={viewJSONDisclosure.onClose}
-                            icon={<CloseIcon />}
-                            variant={"ghost"}
-                            size={"sm"}
-                          />
-                        </Flex>
-                      </AlertDialogHeader>
-                      <Box px={5} pb={5}>
-                        <JSONPretty
-                          id="json-pretty"
-                          data={{
-                            ...workingData?.data?.record_instances[0],
-                            featureVector: undefined,
-                          }}
-                          theme={JSONPrettyTheme}
-                          mainStyle="padding:1em"
-                        />
-                      </Box>
-                    </AlertDialogContent>
-                  </AlertDialogOverlay>
-                </AlertDialog>
               </>
             )}
             <Flex mt={2} wrap={"wrap"}>
