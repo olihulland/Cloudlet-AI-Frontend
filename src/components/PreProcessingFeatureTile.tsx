@@ -17,8 +17,22 @@ import {
   Spacer,
   Text,
   useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Code,
 } from "@chakra-ui/react";
-import { CloseIcon, EditIcon, RepeatIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  CloseIcon,
+  EditIcon,
+  RepeatIcon,
+  DeleteIcon,
+  CheckIcon,
+} from "@chakra-ui/icons";
 import {
   CommonFeatureCalculator,
   Feature,
@@ -53,6 +67,8 @@ export const PreProcessingFeatureTile = ({
 
   const [code, setCode] = useState<string>();
   const [codeError, setCodeError] = useState<boolean>();
+
+  const codeEditorDisclosure = useDisclosure();
 
   const viewJSONDisclosure = useDisclosure();
   const cancelRef: any = useRef();
@@ -120,12 +136,38 @@ return 0;`,
     });
   };
 
-  // @ts-ignore
-  // @ts-ignore
+  const saveButton = (
+    <Button
+      isDisabled={
+        isCommon(feature.calculate)
+          ? op === (feature.calculate as CommonFeatureCalculator).op &&
+            key === (feature.calculate as CommonFeatureCalculator).key
+          : codeError || code === feature.calculate.toString()
+      }
+      onClick={() => {
+        if (!isCommon(feature.calculate) && code !== undefined) {
+          setFeature({ ...feature, calculate: code });
+        } else if (op !== undefined && key !== undefined) {
+          setFeature({
+            ...feature,
+            calculate: {
+              op: op,
+              key: key,
+            },
+          });
+        }
+      }}
+      leftIcon={<CheckIcon />}
+      colorScheme={"green"}
+    >
+      Update Processing
+    </Button>
+  );
+
   return (
-    <Card w={"full"}>
+    <Card>
       <CardBody>
-        <Flex gap={3}>
+        <Flex gap={1}>
           <Box>
             <Input value={name} onChange={(e) => changeName(e.target.value)} />{" "}
           </Box>
@@ -145,189 +187,210 @@ return 0;`,
             colorScheme={"red"}
           />
         </Flex>
-        <Box p={3} rounded={"lg"} borderWidth={1} mt={3} w={"full"}>
-          <Heading size={"sm"}>Processing</Heading>
-          {isCommon(feature.calculate) ? (
-            <Flex justifyContent={"space-around"}>
-              <HStack>
-                <Text>Operation:</Text>
-                <Select
-                  value={op}
-                  onChange={(e) => {
-                    setOp(parseInt(e.target.value) as CommonOperations);
-                  }}
-                >
-                  {Object.values(CommonOperations)
-                    .slice(0, Object.values(CommonOperations).length / 2)
-                    .map((op, index) => {
-                      return (
-                        <option value={Object.keys(CommonOperations)[index]}>
-                          {op}
-                        </option>
-                      );
-                    })}
-                </Select>
-              </HStack>
-              <HStack>
-                <Text>On data:</Text>
-                <Select
-                  value={key}
-                  onChange={(e) => {
-                    setKey(e.target.value);
-                  }}
-                >
-                  {possibleKeys.map((key) => {
-                    return <option value={key}>{key}</option>;
-                  })}
-                </Select>
-              </HStack>
-            </Flex>
-          ) : (
-            <>
-              <Box p={1} my={3}>
-                <Text>
-                  Custom code. Must return number and can access record instance
-                  using variable record. Show basic example. Show record data
-                  structure.
-                </Text>
-                <CodeEditor
-                  value={code}
-                  language={"javascript"}
-                  padding={10}
-                  onChange={(e) => {
-                    setCode(e.target.value);
-                  }}
-                  style={{
-                    width: "100%",
-                    fontFamily: '"Fira code", "Fira Mono", monospace',
-                    fontSize: 12,
-                  }}
-                />
-                <Flex gap={2} mt={2}>
-                  <Button
-                    isDisabled={code === feature.calculate.toString()}
-                    onClick={() => {
-                      setCode(feature.calculate.toString());
-                    }}
-                    colorScheme={"red"}
-                  >
-                    Reset
-                  </Button>
-                  <Spacer />
-                  <Button
-                    onClick={() => {
-                      viewJSONDisclosure.onOpen();
+        <Center h={"80%"}>
+          <Box p={3} rounded={"lg"} borderWidth={1} mt={1} w={"full"}>
+            <Heading size={"sm"}>Processing</Heading>
+            {isCommon(feature.calculate) ? (
+              <Flex justifyContent={"space-around"}>
+                <HStack>
+                  <Text>Operation:</Text>
+                  <Select
+                    value={op}
+                    onChange={(e) => {
+                      setOp(parseInt(e.target.value) as CommonOperations);
                     }}
                   >
-                    View first record
-                  </Button>
-                  <Button
-                    isDisabled={codeError}
-                    onClick={() => {
-                      if (code === undefined) return;
-                      let fn = new Function(
-                        "record",
-                        code
-                      ) as FeatureCalculatorFunction;
-                      if (workingData?.data?.record_instances)
-                        alert(
-                          fn.call(null, workingData?.data?.record_instances[0])
+                    {Object.values(CommonOperations)
+                      .slice(0, Object.values(CommonOperations).length / 2)
+                      .map((op, index) => {
+                        return (
+                          <option value={Object.keys(CommonOperations)[index]}>
+                            {op}
+                          </option>
                         );
+                      })}
+                  </Select>
+                </HStack>
+                <HStack>
+                  <Text>On data:</Text>
+                  <Select
+                    value={key}
+                    onChange={(e) => {
+                      setKey(e.target.value);
                     }}
                   >
-                    Test on first record
-                  </Button>
-                </Flex>
-              </Box>
-              <AlertDialog
-                leastDestructiveRef={cancelRef}
-                isOpen={viewJSONDisclosure.isOpen}
-                onClose={viewJSONDisclosure.onClose}
-                size={"5xl"}
-              >
-                <AlertDialogOverlay>
-                  <AlertDialogContent>
-                    <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                      <Flex>
-                        <Center>
-                          <Heading size={"sm"}>First Record</Heading>
-                        </Center>
-                        <Spacer />
-                        <IconButton
-                          aria-label={"Close"}
-                          onClick={viewJSONDisclosure.onClose}
-                          icon={<CloseIcon />}
-                          variant={"ghost"}
-                          size={"sm"}
-                        />
-                      </Flex>
-                    </AlertDialogHeader>
-                    <Box px={5} pb={5}>
-                      <JSONPretty
-                        id="json-pretty"
-                        data={{
-                          ...workingData?.data?.record_instances[0],
-                          featureVector: undefined,
+                    {possibleKeys.map((key) => {
+                      return <option value={key}>{key}</option>;
+                    })}
+                  </Select>
+                </HStack>
+              </Flex>
+            ) : (
+              <>
+                <Modal
+                  isOpen={codeEditorDisclosure.isOpen}
+                  onClose={codeEditorDisclosure.onClose}
+                  size={"5xl"}
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader>Code Editor</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <Text mb={3}>
+                        <p>
+                          This is custom code written in JavaScript. It must
+                          return a <Code>number</Code> and has access to the
+                          record instance using the variable <Code>record</Code>
+                          .
+                        </p>
+                        <p>
+                          No libraries are available, but you can use any
+                          JavaScript features that are available in the browser.
+                        </p>
+                        <p>
+                          See an example of <Code>record</Code> and run your
+                          code against it using the blue buttons below.
+                        </p>
+                      </Text>
+                      <CodeEditor
+                        value={code}
+                        language={"javascript"}
+                        padding={10}
+                        onChange={(e) => {
+                          setCode(e.target.value);
                         }}
-                        theme={JSONPrettyTheme}
-                        mainStyle="padding:1em"
+                        style={{
+                          width: "100%",
+                          fontFamily: '"Fira code", "Fira Mono", monospace',
+                          fontSize: 12,
+                        }}
                       />
-                    </Box>
-                  </AlertDialogContent>
-                </AlertDialogOverlay>
-              </AlertDialog>
-            </>
-          )}
-          <Flex mt={2}>
-            <Button
-              leftIcon={<RepeatIcon />}
-              onClick={() => {
-                if (
-                  // eslint-disable-next-line no-restricted-globals
-                  !confirm(
-                    "Are you sure?\nYou will lose the current processing setup!"
+                    </ModalBody>
+                    <ModalFooter>
+                      <Flex gap={2} mt={2} w={"full"}>
+                        <Button
+                          isDisabled={code === feature.calculate.toString()}
+                          onClick={() => {
+                            setCode(feature.calculate.toString());
+                          }}
+                          colorScheme={"red"}
+                        >
+                          Reset
+                        </Button>
+                        <Spacer />
+                        <Button
+                          onClick={() => {
+                            viewJSONDisclosure.onOpen();
+                          }}
+                          colorScheme={"blue"}
+                        >
+                          View first record
+                        </Button>
+                        <Button
+                          isDisabled={codeError}
+                          onClick={() => {
+                            if (code === undefined) return;
+                            let fn = new Function(
+                              "record",
+                              code
+                            ) as FeatureCalculatorFunction;
+                            if (workingData?.data?.record_instances)
+                              alert(
+                                "Result: " +
+                                  fn
+                                    .call(
+                                      null,
+                                      workingData?.data?.record_instances[0]
+                                    )
+                                    .toString()
+                              );
+                          }}
+                          colorScheme={"blue"}
+                        >
+                          Test on first record
+                        </Button>
+                        <Spacer />
+                        {saveButton}
+                      </Flex>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+                <AlertDialog
+                  leastDestructiveRef={cancelRef}
+                  isOpen={viewJSONDisclosure.isOpen}
+                  onClose={viewJSONDisclosure.onClose}
+                  size={"5xl"}
+                >
+                  <AlertDialogOverlay>
+                    <AlertDialogContent>
+                      <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                        <Flex>
+                          <Center>
+                            <Heading size={"sm"}>First Record</Heading>
+                          </Center>
+                          <Spacer />
+                          <IconButton
+                            aria-label={"Close"}
+                            onClick={viewJSONDisclosure.onClose}
+                            icon={<CloseIcon />}
+                            variant={"ghost"}
+                            size={"sm"}
+                          />
+                        </Flex>
+                      </AlertDialogHeader>
+                      <Box px={5} pb={5}>
+                        <JSONPretty
+                          id="json-pretty"
+                          data={{
+                            ...workingData?.data?.record_instances[0],
+                            featureVector: undefined,
+                          }}
+                          theme={JSONPrettyTheme}
+                          mainStyle="padding:1em"
+                        />
+                      </Box>
+                    </AlertDialogContent>
+                  </AlertDialogOverlay>
+                </AlertDialog>
+              </>
+            )}
+            <Flex mt={2} wrap={"wrap"}>
+              <Button
+                leftIcon={<RepeatIcon />}
+                onClick={() => {
+                  if (
+                    // eslint-disable-next-line no-restricted-globals
+                    !confirm(
+                      "Are you sure?\nYou will lose the current processing setup!"
+                    )
                   )
-                )
-                  return;
-                if (isCommon(feature.calculate)) {
-                  becomeCustom();
-                } else {
-                  becomeCommon();
-                }
-              }}
-            >
-              Switch to{" "}
-              {isCommon(feature.calculate) ? "Custom" : "Standardised"}{" "}
-              Processing
-            </Button>
-            <Spacer />
-            <Button
-              isDisabled={
-                isCommon(feature.calculate)
-                  ? op === (feature.calculate as CommonFeatureCalculator).op &&
-                    key === (feature.calculate as CommonFeatureCalculator).key
-                  : codeError || code === feature.calculate.toString()
-              }
-              onClick={() => {
-                if (!isCommon(feature.calculate) && code !== undefined) {
-                  setFeature({ ...feature, calculate: code });
-                } else if (op !== undefined && key !== undefined) {
-                  setFeature({
-                    ...feature,
-                    calculate: {
-                      op: op,
-                      key: key,
-                    },
-                  });
-                }
-              }}
-              leftIcon={<EditIcon />}
-              colorScheme={"green"}
-            >
-              Update Processing
-            </Button>
-          </Flex>
-        </Box>
+                    return;
+                  if (isCommon(feature.calculate)) {
+                    becomeCustom();
+                  } else {
+                    becomeCommon();
+                  }
+                }}
+              >
+                Switch to {isCommon(feature.calculate) ? "Custom" : "Standard"}{" "}
+                Processing
+              </Button>
+              <Spacer />
+              {isCommon(feature.calculate) ? (
+                <>{saveButton}</>
+              ) : (
+                <Button
+                  leftIcon={<EditIcon />}
+                  onClick={codeEditorDisclosure.onOpen}
+                  colorScheme={"blue"}
+                >
+                  Open Code Editor
+                </Button>
+              )}
+            </Flex>
+          </Box>
+        </Center>
       </CardBody>
     </Card>
   );

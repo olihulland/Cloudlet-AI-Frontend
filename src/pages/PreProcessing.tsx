@@ -93,7 +93,7 @@ export const PreProcessing = ({
 
   return (
     <>
-      <Container maxWidth="container.xl" px={10}>
+      <Container maxWidth="80%" px={10}>
         <Heading>Data Pre-Processing</Heading>
         <FormControl>
           <FormLabel>Select pre-processing preset:</FormLabel>

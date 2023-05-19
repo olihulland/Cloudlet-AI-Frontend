@@ -1,5 +1,5 @@
 import { Feature, WorkingData } from "../data/types";
-import { Button, VStack } from "@chakra-ui/react";
+import { Button, Flex, Center } from "@chakra-ui/react";
 import { PreProcessingFeatureTile } from "./PreProcessingFeatureTile";
 import { AddIcon } from "@chakra-ui/icons";
 import { CommonOperations } from "../data/pre-processing/CommonOperations";
@@ -43,42 +43,49 @@ export const PreProcessingFeatureList = ({
   const possibleKeys = calculatePossibleKeys();
 
   return (
-    <VStack>
-      {features.map((feature, index) => {
-        return (
-          <PreProcessingFeatureTile
-            feature={feature}
-            key={index}
-            setFeature={(newFeature) => {
-              let newFeatures = [...features];
-              if (newFeature === undefined) newFeatures.splice(index, 1);
-              else newFeatures[index] = newFeature;
-              updateFeatures(newFeatures);
-            }}
-            possibleKeys={possibleKeys}
-            workingData={workingData}
-          />
-        );
-      })}
-      <Button
-        w={"full"}
-        leftIcon={<AddIcon />}
-        colorScheme={"green"}
-        onClick={() => {
-          let newFeatures = [...features];
-          newFeatures.push({
-            name: "New Feature",
-            description: "Description",
-            calculate: {
-              op: CommonOperations.Mean,
-              key: possibleKeys[0],
-            },
-          });
-          updateFeatures(newFeatures);
-        }}
-      >
-        Add Feature
-      </Button>
-    </VStack>
+    <>
+      <Flex flexWrap={"wrap"} gap={2} justifyContent={"space-evenly"}>
+        {features.map((feature, index) => {
+          return (
+            <PreProcessingFeatureTile
+              feature={feature}
+              key={index}
+              setFeature={(newFeature) => {
+                let newFeatures = [...features];
+                if (newFeature === undefined) newFeatures.splice(index, 1);
+                else newFeatures[index] = newFeature;
+                updateFeatures(newFeatures);
+              }}
+              possibleKeys={possibleKeys}
+              workingData={workingData}
+            />
+          );
+        })}
+      </Flex>
+      <Center>
+        <Button
+          mt={5}
+          w={"full"}
+          maxW={"lg"}
+          leftIcon={<AddIcon />}
+          colorScheme={"green"}
+          onClick={() => {
+            let newFeatures = [...features];
+            newFeatures.push({
+              name: "New Feature",
+              description: "Description",
+              calculate: {
+                op: CommonOperations.Mean,
+                key: possibleKeys[0],
+              },
+            });
+            updateFeatures(newFeatures);
+          }}
+          boxShadow={"md"}
+        >
+          Add Feature
+        </Button>
+      </Center>
+    </>
   );
 };
