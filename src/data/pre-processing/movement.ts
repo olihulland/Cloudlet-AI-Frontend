@@ -142,7 +142,7 @@ for (let i = 0; i < zValues.length; i++) {
 return zPeaks;`,
   },
   {
-    name: "meanStrength",
+    name: "sMean",
     description: "Mean strength",
     calculate: {
       op: CommonOperations.Mean,

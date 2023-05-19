@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Container, Heading, Button, Flex } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
+import { RecordInstanceProcessed } from "../data/types";
 
 export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -65,8 +66,14 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
     return count;
   }, [workingData]);
 
+  const numFeatures = useMemo(() => {
+    if (!workingData || workingData.data === undefined) return undefined;
+    return (workingData.data.record_instances[0] as RecordInstanceProcessed)
+      .featureVector.length;
+  }, [workingData]);
+
   const trainModel = async () => {
-    if (!trainingDataTensors || !numClasses) {
+    if (!trainingDataTensors || !numClasses || !numFeatures) {
       console.error("Training data tensors undefined - unable to train");
       return;
     }
@@ -78,7 +85,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
         tf.layers.dense({
           units: 20,
           activation: "relu",
-          inputShape: [13],
+          inputShape: [numFeatures],
         }),
         tf.layers.dense({
           units: 10,

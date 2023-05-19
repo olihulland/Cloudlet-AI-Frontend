@@ -103,7 +103,7 @@ export const PreProcessingSimpleTable = ({
               <Th>Class</Th>
               <Th>|</Th>
               {Object.values(processedData)[0].map((feature) => {
-                return <Th>{feature.name}</Th>;
+                return <Th textTransform={"unset"}>{feature.name}</Th>;
               })}
             </Tr>
           </Thead>
