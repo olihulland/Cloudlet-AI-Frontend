@@ -1,6 +1,6 @@
 import { PageProps } from "../App";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Accordion,
   AccordionButton,
@@ -20,9 +20,10 @@ import {
 
 import { PreProcessingSimpleTable } from "../components/PreProcessingSimpleTable";
 import { movementFeatures } from "../data/pre-processing/movement";
-import { Feature } from "../data/types";
+import { DataProcessed, Feature } from "../data/types";
 import { ProcessingPresets } from "../data/pre-processing/presets";
 import { PreProcessingFeatureList } from "../components/PreProcessingFeatureList";
+import { PreProcessingGraph } from "../components/PreProcessingGraph";
 
 export const PreProcessing = ({
   setStepInfo,
@@ -33,6 +34,8 @@ export const PreProcessing = ({
   const [features, setFeatures] = useState<Feature[]>(
     workingData?.features || []
   );
+
+  const graphContainer = useRef();
 
   const stepInfoTemplate = {
     currentPhase: "Data Pre-Processing",
@@ -93,7 +96,7 @@ export const PreProcessing = ({
 
   return (
     <>
-      <Container maxWidth="80%" px={10}>
+      <Container maxWidth="80%" px={10} ref={graphContainer as any}>
         <Heading>Data Pre-Processing</Heading>
         <FormControl>
           <FormLabel>Select pre-processing preset:</FormLabel>
@@ -117,7 +120,7 @@ export const PreProcessing = ({
             This should be selected to best suit your application.
           </FormHelperText>
         </FormControl>
-        <Accordion defaultIndex={[0, 2]} allowMultiple allowToggle my={5}>
+        <Accordion defaultIndex={[0, 2]} allowMultiple my={5}>
           <AccordionItem>
             <AccordionButton>
               <Heading size={"lg"} my={4}>
@@ -144,7 +147,11 @@ export const PreProcessing = ({
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel>
-              <p>here</p>
+              <PreProcessingGraph
+                features={features}
+                workingData={workingData}
+                containerRef={graphContainer}
+              />
             </AccordionPanel>
           </AccordionItem>
           <AccordionItem>
