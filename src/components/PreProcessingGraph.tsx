@@ -35,7 +35,7 @@ export const PreProcessingGraph = ({
         classes.push({ name: className, num: instance.classification });
     });
     return classes;
-  }, [workingData]);
+  }, [workingData, workingData?.data?.record_instances]);
 
   const graphData = useMemo(() => {
     if (!features) return [];
@@ -90,8 +90,12 @@ export const PreProcessingGraph = ({
           dataKey="x"
           type="number"
           name="Feature"
-          tickFormatter={(num) => (features ? features[num].name : num)}
-          interval={"preserveStartEnd"}
+          tickFormatter={(num) =>
+            features && features?.[num] ? features?.[num].name : num
+          }
+          ticks={features?.map((_, index) => index)}
+          interval={0}
+          max={features?.length}
         />
         <YAxis dataKey="y" type="number" name="Value" />
         <ZAxis dataKey="xName" type="category" name="Feature Name" />

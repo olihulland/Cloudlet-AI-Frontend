@@ -120,7 +120,7 @@ export const PreProcessing = ({
             This should be selected to best suit your application.
           </FormHelperText>
         </FormControl>
-        <Accordion defaultIndex={[0, 2]} allowMultiple my={5}>
+        <Accordion defaultIndex={[0, 1]} allowMultiple my={5}>
           <AccordionItem>
             <AccordionButton>
               <Heading size={"lg"} my={4}>
@@ -141,7 +141,7 @@ export const PreProcessing = ({
           <AccordionItem>
             <AccordionButton>
               <Heading size={"lg"} my={4}>
-                Feature Importance
+                Compare Features
               </Heading>
               <Spacer />
               <AccordionIcon />
