@@ -1,3 +1,5 @@
+import { TrainingRequestData } from "./types";
+
 export const getData = async () => {
   const response = await fetch(`${process.env.REACT_APP_API_URL}/data`);
   const data = await response.json();
@@ -34,4 +36,12 @@ export const setClassName = async ({
 
 export const ident = async () => {
   await fetch(`${process.env.REACT_APP_API_URL}/ident`);
+};
+
+export const requestTrainModel = async (modelInfo: TrainingRequestData) => {
+  return await fetch(`${process.env.REACT_APP_API_URL}/train`, {
+    method: "POST",
+    body: JSON.stringify(modelInfo),
+    headers: new Headers({ "content-type": "application/json" }),
+  });
 };

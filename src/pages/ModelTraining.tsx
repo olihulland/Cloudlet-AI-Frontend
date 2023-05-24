@@ -1,9 +1,11 @@
 import { PageProps } from "../App";
 import { useEffect, useMemo, useState } from "react";
-import { Container, Heading, Button, Flex } from "@chakra-ui/react";
+import { Container, Heading, Button, Flex, useToast } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
-import { RecordInstanceProcessed } from "../data/types";
+import { RecordInstanceProcessed, TrainingRequestData } from "../data/types";
+import { requestTrainModel } from "../data/api";
+import { getMovementModel } from "../data/models/movement";
 
 export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -16,9 +18,15 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   }, [setStepInfo]);
 
   const [training, setTraining] = useState<boolean>(false);
-  const [model, setModel] = useState<tf.Sequential | undefined>(undefined);
+  const [model, setModel] = useState<
+    tf.Sequential | tf.LayersModel | undefined
+  >(undefined);
 
-  const trainingDataTensors = useMemo(() => {
+  const toast = useToast();
+
+  const [labelsPossible, setLabelsPossible] = useState<number[]>([]);
+
+  const trainingData = useMemo(() => {
     if (!workingData || workingData.data === undefined) return undefined;
 
     let features = workingData.data.record_instances.map(
@@ -28,6 +36,13 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
     let labels = workingData.data.record_instances.map(
       (instance) => instance.classification
     );
+    // list of possible labels
+    let labelsPossible = labels.filter(
+      (value, index, self) => self.indexOf(value) === index
+    );
+    setLabelsPossible(labelsPossible);
+    // replace labels with index of label in labelsPossible
+    labels = labels.map((label) => labelsPossible.indexOf(label));
     console.log("labels", labels);
 
     // combine features and labels into one array
@@ -43,12 +58,9 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
     features = data.map((value) => value.feature);
     labels = data.map((value) => value.label);
 
-    const featureTensor = tf.tensor(features);
-    const labelTensor = tf.tensor(labels);
-
     return {
-      features: featureTensor,
-      labels: labelTensor,
+      features: features,
+      labels: labels,
     };
   }, [workingData]);
 
@@ -73,79 +85,46 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   }, [workingData]);
 
   const trainModel = async () => {
-    if (!trainingDataTensors || !numClasses || !numFeatures) {
-      console.error("Training data tensors undefined - unable to train");
+    if (!trainingData || !numClasses || !numFeatures) {
+      console.error("Training data undefined - unable to train");
       return;
     }
 
     setTraining(true);
 
-    const model = tf.sequential({
-      layers: [
-        tf.layers.dense({
-          units: 20,
-          activation: "relu",
-          inputShape: [numFeatures],
-        }),
-        tf.layers.dense({
-          units: 10,
-          activation: "relu",
-        }),
-        tf.layers.dense({
-          units: numClasses,
-          activation: "softmax",
-        }),
-      ],
-    });
-
-    model.compile({
-      optimizer: tf.train.adam(0.005, 0.9, 0.999),
-      loss: "sparseCategoricalCrossentropy",
-      metrics: ["accuracy"],
-    });
-
-    trainingDataTensors.features.array().then((array) => {
-      console.log("f d", array);
-    });
-    console.log("f s: ", trainingDataTensors.features.shape);
-    console.log("f type: ", trainingDataTensors.features.dtype);
-
-    trainingDataTensors.labels.array().then((array) => {
-      console.log("l d", array);
-    });
-    console.log("l s: ", trainingDataTensors.labels.shape);
-    console.log("l type: ", trainingDataTensors.labels.dtype);
-
-    console.log("num classes: ", numClasses);
-
-    await model
-      .fit(trainingDataTensors.features, trainingDataTensors.labels, {
-        epochs: 40,
-        batchSize: 32,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            console.log(
-              "Epoch: " + epoch,
-              "Loss: " + logs?.loss,
-              "Accuracy: " + logs?.acc
-            );
-          },
-        },
-      })
-      .then((info) => {
-        console.log(info);
-        setModel(model);
-      });
-
-    // evaluate model
-    const evalOutput = model.evaluate(
-      trainingDataTensors.features,
-      trainingDataTensors.labels
+    const modelSchema = getMovementModel(
+      trainingData.features,
+      trainingData.labels,
+      numClasses
     );
-    // @ts-ignore
-    evalOutput[0].print();
-    // @ts-ignore
-    evalOutput[1].print();
+    requestTrainModel(modelSchema).then((res) => {
+      if (res.status < 200 || res.status >= 300) {
+        res.text().then((text) => {
+          toast({
+            title: "Training Error",
+            description: text,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top",
+          });
+          console.error(text);
+        });
+      } else {
+        res.json().then((json) => {
+          const modelID = json["modelID"];
+          if (modelID === undefined) {
+            throw Error("No modelID");
+          }
+          tf.loadLayersModel(
+            `${process.env.REACT_APP_API_URL}/trained-model/${modelID}/model.json`
+          ).then((m) => {
+            console.log("set model", m);
+            setModel(m);
+          });
+        });
+      }
+    });
 
     setTraining(false);
   };
@@ -187,6 +166,42 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
             onClick={trainModel}
           >
             Train!
+          </Button>
+          <Button
+            isDisabled={!model}
+            onClick={() => {
+              if (!model) return;
+              const result = model.predict(
+                tf.tensor([
+                  [
+                    2040, -2040, 1417.7388672553543, 0, 2040, -984,
+                    824.3757332978387, 0, 2040, -2040, 1521.0920462644638, 0,
+                    2129.6180555555557,
+                  ],
+                ])
+              );
+              console.log("result 0", result.toString());
+            }}
+          >
+            Predict 0
+          </Button>
+          <Button
+            isDisabled={!model}
+            onClick={() => {
+              if (!model) return;
+              const result = model.predict(
+                tf.tensor([
+                  [
+                    140, 124, 3.6154803433579334, 0, -12, -28,
+                    3.961766964913097, 0, -996, -1016, 4.211320472937928, 0,
+                    1015.73125,
+                  ],
+                ])
+              );
+              console.log("result 1", result.toString());
+            }}
+          >
+            Predict 1
           </Button>
           <Button
             colorScheme="blue"

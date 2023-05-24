@@ -64,3 +64,24 @@ export type CommonFeatureCalculator = {
   op: CommonOperations;
   key: string;
 };
+
+export interface TrainingRequestData {
+  features: number[][];
+  labels: number[];
+  model: {
+    layers: {
+      type: string;
+      units: number;
+      activation: string;
+    }[];
+    compile: {
+      optimizer: string;
+      loss: string;
+      metrics?: string[];
+    };
+    fit: {
+      epochs: number;
+      batchSize?: number;
+    };
+  };
+}
