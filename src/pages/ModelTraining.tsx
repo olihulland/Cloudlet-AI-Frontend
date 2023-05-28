@@ -1,11 +1,39 @@
 import { PageProps } from "../App";
 import { useEffect, useMemo, useState } from "react";
-import { Container, Heading, Button, Flex, useToast } from "@chakra-ui/react";
+import {
+  Container,
+  Heading,
+  Button,
+  Flex,
+  useToast,
+  Box,
+} from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
 import { RecordInstanceProcessed, TrainingRequestData } from "../data/types";
 import { requestTrainModel } from "../data/api";
 import { getMovementModel } from "../data/models/movement";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -21,6 +49,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
   const [model, setModel] = useState<
     tf.Sequential | tf.LayersModel | undefined
   >(undefined);
+  const [modelHistory, setModelHistory] = useState<any>();
 
   const toast = useToast();
 
@@ -113,6 +142,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
       } else {
         res.json().then((json) => {
           const modelID = json["modelID"];
+          const modelHistory = json["history"];
           if (modelID === undefined) {
             throw Error("No modelID");
           }
@@ -121,6 +151,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
           ).then((m) => {
             console.log("set model", m);
             setModel(m);
+            setModelHistory(modelHistory);
           });
         });
       }
@@ -215,6 +246,63 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
             Get Model
           </Button>
         </Flex>
+        <Box>
+          <Heading>Model History</Heading>
+          {modelHistory ? (
+            <Line
+              options={{
+                responsive: true,
+                scales: {
+                  yLoss: {
+                    type: "linear" as const,
+                    display: true,
+                    position: "left" as const,
+                    title: {
+                      display: true,
+                      text: "Loss",
+                      color: "darkred",
+                    },
+                  },
+                  yAccuracy: {
+                    type: "linear" as const,
+                    display: true,
+                    position: "right" as const,
+                    title: {
+                      display: true,
+                      text: "Accuracy",
+                      color: "darkgreen",
+                    },
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Epoch",
+                    },
+                  },
+                },
+              }}
+              data={{
+                labels: modelHistory.loss.map((_: any, n: any) => n + 1),
+                datasets: [
+                  {
+                    label: "Loss",
+                    data: modelHistory.loss,
+                    borderColor: "red",
+                    backgroundColor: "red",
+                    yAxisID: "yLoss",
+                  },
+                  {
+                    label: "Accuracy",
+                    data: modelHistory.accuracy,
+                    borderColor: "green",
+                    backgroundColor: "green",
+                    yAxisID: "yAccuracy",
+                  },
+                ],
+              }}
+            />
+          ) : null}
+        </Box>
       </Container>
     </>
   );

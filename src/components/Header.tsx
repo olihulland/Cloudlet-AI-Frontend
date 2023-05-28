@@ -56,9 +56,9 @@ export const Header = ({ stepInfo }: { stepInfo: StepInfo | undefined }) => {
             </Breadcrumb>
           </Center>
           <Spacer />
-          <Center mr={10}>
-            <ColorModeSwitcher />
-          </Center>
+          {/*<Center mr={10}>*/}
+          {/*  <ColorModeSwitcher />*/}
+          {/*</Center>*/}
           {stepInfo?.nextStep && (
             <>
               <IconButton
