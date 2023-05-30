@@ -19,6 +19,8 @@ import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import * as tf from "@tensorflow/tfjs";
 import { Tensor } from "@tensorflow/tfjs";
+import { generateExtension } from "../extension_generation/main";
+import { DataProcessed } from "../data/types";
 
 export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -176,8 +178,16 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
         >
           Send Model
         </Button>
-        <Button colorScheme="orange" size="lg" onClick={getModelFile}>
+        <Button colorScheme="orange" size="lg" onClick={getModelFile} mr={2}>
           Get Model
+        </Button>
+        <Button
+          size={"lg"}
+          onClick={() => {
+            if (workingData) generateExtension(workingData);
+          }}
+        >
+          Generate MakeCode Extension
         </Button>
       </Container>
     </>

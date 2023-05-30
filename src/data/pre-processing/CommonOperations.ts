@@ -1,10 +1,10 @@
 import * as math from "mathjs";
 import {
   CommonFeatureCalculator,
+  DataPoint,
   Feature,
   FeatureCalculator,
   FeatureCalculatorFunction,
-  RecordInstance,
 } from "../types";
 
 export enum CommonOperations {
@@ -17,7 +17,7 @@ export enum CommonOperations {
 export const doCommonOperation = (
   op: CommonOperations,
   key: string,
-  record: RecordInstance
+  record: { data: DataPoint[] }
 ) => {
   const data = getValueList(record, key);
   switch (op) {
@@ -34,13 +34,16 @@ export const doCommonOperation = (
   }
 };
 
-export const getValueList = (data: RecordInstance, key: string) => {
+export const getValueList = (data: { data: DataPoint[] }, key: string) => {
   return data.data
     .map((dataPoint: any) => dataPoint[key])
     .filter((val) => val !== undefined);
 };
 
-export const solveFeature = (feature: Feature, record: RecordInstance) => {
+export const solveFeature = (
+  feature: Feature,
+  record: { data: DataPoint[] }
+) => {
   if ((feature.calculate as CommonFeatureCalculator).op !== undefined) {
     const cFC = feature.calculate as CommonFeatureCalculator;
     return doCommonOperation(cFC.op, cFC.key, record);
