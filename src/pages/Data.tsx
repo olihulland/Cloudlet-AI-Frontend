@@ -165,68 +165,71 @@ export const Data = ({
             </Tr>
           </Thead>
           <Tbody>
-            {classesList?.map((classID: number) => (
-              <Tr key={classID}>
-                <Td>{classID}</Td>
-                <Td>
-                  <HStack>
-                    <Badge colorScheme={"purple"}>
-                      {
-                        getDataQuery.data?.classes.find(
-                          (classObj) =>
-                            classObj.id.toString() === classID.toString()
-                        )?.name
-                      }
-                    </Badge>
-                    <Spacer />
-                    <Popover>
-                      <PopoverTrigger>
-                        <IconButton
-                          aria-label={"Edit Class Name"}
-                          icon={<EditIcon />}
-                        />
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <PopoverArrow />
-                        <PopoverCloseButton />
-                        <PopoverHeader>New Class Name</PopoverHeader>
-                        <PopoverBody>
-                          <VStack>
-                            <Input
-                              placeholder={"Class Name"}
-                              id={"cn:" + classID.toString()}
-                            />
-                            <Button
-                              onClick={() => {
-                                const newClassName = (
-                                  document.getElementById(
-                                    "cn:" + classID.toString()
-                                  ) as HTMLInputElement
-                                ).value;
-                                classNameMutation.mutate({
-                                  id: classID,
-                                  name: newClassName,
-                                });
-                              }}
-                              rightIcon={<CheckIcon />}
-                            >
-                              Submit
-                            </Button>
-                          </VStack>
-                        </PopoverBody>
-                      </PopoverContent>
-                    </Popover>
-                  </HStack>
-                </Td>
-                <Td>
-                  {
-                    getDataQuery.data?.record_instances.filter(
-                      (record) => record.classification === classID
-                    ).length
-                  }
-                </Td>
-              </Tr>
-            ))}
+            {classesList?.map((classID: number) => {
+              if (classID == null) return null;
+              return (
+                <Tr key={classID}>
+                  <Td>{classID}</Td>
+                  <Td>
+                    <HStack>
+                      <Badge colorScheme={"purple"}>
+                        {
+                          getDataQuery.data?.classes.find(
+                            (classObj) =>
+                              classObj.id.toString() === classID.toString()
+                          )?.name
+                        }
+                      </Badge>
+                      <Spacer />
+                      <Popover>
+                        <PopoverTrigger>
+                          <IconButton
+                            aria-label={"Edit Class Name"}
+                            icon={<EditIcon />}
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <PopoverArrow />
+                          <PopoverCloseButton />
+                          <PopoverHeader>New Class Name</PopoverHeader>
+                          <PopoverBody>
+                            <VStack>
+                              <Input
+                                placeholder={"Class Name"}
+                                id={"cn:" + classID.toString()}
+                              />
+                              <Button
+                                onClick={() => {
+                                  const newClassName = (
+                                    document.getElementById(
+                                      "cn:" + classID.toString()
+                                    ) as HTMLInputElement
+                                  ).value;
+                                  classNameMutation.mutate({
+                                    id: classID,
+                                    name: newClassName,
+                                  });
+                                }}
+                                rightIcon={<CheckIcon />}
+                              >
+                                Submit
+                              </Button>
+                            </VStack>
+                          </PopoverBody>
+                        </PopoverContent>
+                      </Popover>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    {
+                      getDataQuery.data?.record_instances.filter(
+                        (record) => record.classification === classID
+                      ).length
+                    }
+                  </Td>
+                </Tr>
+              );
+            })}
           </Tbody>
         </Table>
       </TableContainer>
