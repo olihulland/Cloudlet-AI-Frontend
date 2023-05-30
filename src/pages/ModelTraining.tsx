@@ -34,6 +34,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import Hashes from "jshashes";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(
   CategoryScale,
@@ -70,6 +71,7 @@ export const ModelTraining = ({
   >(undefined);
 
   const toast = useToast();
+  const navigate = useNavigate();
 
   const dataFeatureHash = (data: DataProcessed, features: Feature[]) => {
     const MD5 = new Hashes.MD5();
@@ -78,6 +80,14 @@ export const ModelTraining = ({
   };
 
   useEffect(() => {
+    if (
+      workingData === undefined ||
+      workingData.data === undefined ||
+      workingData.data.record_instances.length === 0
+    ) {
+      navigate("/pre-processing");
+    }
+
     if (
       workingData &&
       workingData.model &&

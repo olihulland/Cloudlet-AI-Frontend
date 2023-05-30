@@ -20,10 +20,11 @@ import {
 
 import { PreProcessingSimpleTable } from "../components/PreProcessingSimpleTable";
 import { movementFeatures } from "../data/pre-processing/movement";
-import { DataProcessed, Feature } from "../data/types";
+import { Feature } from "../data/types";
 import { ProcessingPresets } from "../data/pre-processing/presets";
 import { PreProcessingFeatureList } from "../components/PreProcessingFeatureList";
 import { PreProcessingGraph } from "../components/PreProcessingGraph";
+import { useNavigate } from "react-router-dom";
 
 export const PreProcessing = ({
   setStepInfo,
@@ -37,12 +38,20 @@ export const PreProcessing = ({
 
   const graphContainer = useRef();
 
+  const navigate = useNavigate();
+
   const stepInfoTemplate = {
     currentPhase: "Data Pre-Processing",
     nextStep: "/model-training",
     prevStep: "/data",
     allowNext: false,
   };
+
+  useEffect(() => {
+    if (!workingData?.data) {
+      navigate("/data");
+    }
+  }, []);
 
   useEffect(() => {
     setStepInfo(stepInfoTemplate);
