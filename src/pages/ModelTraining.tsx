@@ -51,13 +51,14 @@ export const ModelTraining = ({
   workingData,
   setWorkingData,
 }: PageProps) => {
+  const stepInfo = {
+    currentPhase: "Model Training",
+    nextStep: "/model-evaluation",
+    prevStep: "/pre-processing",
+    allowNext: false,
+  };
   useEffect(() => {
-    setStepInfo({
-      currentPhase: "Model Training",
-      nextStep: "/next?",
-      prevStep: "/pre-processing",
-      allowNext: false,
-    });
+    setStepInfo(stepInfo);
   }, [setStepInfo]);
 
   const [training, setTraining] = useState<boolean>(false);
@@ -104,6 +105,12 @@ export const ModelTraining = ({
         setModel(workingData.model);
         setModelHistory(workingData.modelHistory);
         setTrainingProportion(workingData.trainingProportion);
+        if (setStepInfo) {
+          setStepInfo({
+            ...stepInfo,
+            allowNext: true,
+          });
+        }
       }
     }
   }, []);
@@ -118,9 +125,9 @@ export const ModelTraining = ({
     );
 
     // convert labels to indexes
-    let labelsPossible = labels.filter(
-      (value, index, self) => self.indexOf(value) === index
-    );
+    let labelsPossible = labels
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
     labels = labels.map((label) => labelsPossible.indexOf(label));
 
     // shuffle
@@ -242,6 +249,12 @@ export const ModelTraining = ({
                 testingData: testingData,
               });
             }
+            if (setStepInfo) {
+              setStepInfo({
+                ...stepInfo,
+                allowNext: true,
+              });
+            }
             setTraining(false);
           });
         });
@@ -334,7 +347,7 @@ export const ModelTraining = ({
           </Button>
         </Center>
         <Box mt={4}>
-          <Heading>Model History</Heading>
+          <Heading>Training History</Heading>
           {modelHistory ? (
             <>
               <Text my={3}>

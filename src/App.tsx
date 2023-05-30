@@ -16,6 +16,7 @@ import { io } from "socket.io-client";
 import { PreProcessing } from "./pages/PreProcessing";
 import { WorkingData } from "./data/types";
 import { ModelTraining } from "./pages/ModelTraining";
+import { ModelEvaluation } from "./pages/ModelEvaluation";
 
 export interface PageProps {
   setStepInfo: (info: StepInfo | undefined) => void;
@@ -111,6 +112,16 @@ export const App = () => {
                 />
               }
             />
+            <Route
+              path="/model-evaluation"
+              element={
+                <ModelEvaluation
+                  setStepInfo={setCurrentStepInfo}
+                  workingData={workingData}
+                />
+              }
+            />
+
             <Route
               path="*"
               element={

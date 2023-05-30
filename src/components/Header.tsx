@@ -59,30 +59,28 @@ export const Header = ({ stepInfo }: { stepInfo: StepInfo | undefined }) => {
           {/*<Center mr={10}>*/}
           {/*  <ColorModeSwitcher />*/}
           {/*</Center>*/}
+          {stepInfo?.prevStep && (
+            <IconButton
+              colorScheme={"blue"}
+              icon={<ChevronLeftIcon />}
+              aria-label="Previous Step"
+              mr={1}
+              isDisabled={stepInfo?.prevStep == undefined}
+              onClick={() => {
+                if (stepInfo && stepInfo.prevStep) navigate(stepInfo?.prevStep);
+              }}
+            />
+          )}
           {stepInfo?.nextStep && (
-            <>
-              <IconButton
-                colorScheme={"blue"}
-                icon={<ChevronLeftIcon />}
-                aria-label="Previous Step"
-                mr={1}
-                isDisabled={stepInfo?.prevStep == undefined}
-                onClick={() => {
-                  if (stepInfo && stepInfo.prevStep)
-                    navigate(stepInfo?.prevStep);
-                }}
-              />
-              <IconButton
-                colorScheme={"blue"}
-                icon={<ChevronRightIcon />}
-                aria-label="Next Step"
-                onClick={() => {
-                  if (stepInfo && stepInfo.nextStep)
-                    navigate(stepInfo?.nextStep);
-                }}
-                isDisabled={stepInfo?.allowNext === false}
-              />
-            </>
+            <IconButton
+              colorScheme={"blue"}
+              icon={<ChevronRightIcon />}
+              aria-label="Next Step"
+              onClick={() => {
+                if (stepInfo && stepInfo.nextStep) navigate(stepInfo?.nextStep);
+              }}
+              isDisabled={stepInfo?.allowNext === false}
+            />
           )}
         </Flex>
       </Container>
