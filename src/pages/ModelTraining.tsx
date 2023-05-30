@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
-import { RecordInstanceProcessed, TrainingRequestData } from "../data/types";
+import { DataProcessed, Feature, RecordInstanceProcessed } from "../data/types";
 import { requestTrainModel } from "../data/api";
 import { getMovementModel } from "../data/models/movement";
 import {
@@ -24,6 +24,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import Hashes from "jshashes";
 
 ChartJS.register(
   CategoryScale,
@@ -35,7 +36,11 @@ ChartJS.register(
   Legend
 );
 
-export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
+export const ModelTraining = ({
+  setStepInfo,
+  workingData,
+  setWorkingData,
+}: PageProps) => {
   useEffect(() => {
     setStepInfo({
       currentPhase: "Model Training",
@@ -53,37 +58,51 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
 
   const toast = useToast();
 
-  const [labelsPossible, setLabelsPossible] = useState<number[]>([]);
+  const dataFeatureHash = (data: DataProcessed, features: Feature[]) => {
+    const MD5 = new Hashes.MD5();
+    const combinedStr = JSON.stringify(data) + JSON.stringify(features);
+    return MD5.hex(combinedStr);
+  };
+
+  useEffect(() => {
+    if (
+      workingData &&
+      workingData.model &&
+      workingData.modelHistory &&
+      workingData.data &&
+      workingData.features
+    ) {
+      const dfh = dataFeatureHash(
+        workingData.data as DataProcessed,
+        workingData.features
+      );
+      if (dfh === workingData.modelValidityDataFeatureHash) {
+        setModel(workingData.model);
+        setModelHistory(workingData.modelHistory);
+      }
+    }
+  }, []);
 
   const trainingData = useMemo(() => {
     if (!workingData || workingData.data === undefined) return undefined;
-
     let features = workingData.data.record_instances.map(
       (instance: any) => instance.featureVector
     );
-    console.log("features", features);
     let labels = workingData.data.record_instances.map(
       (instance) => instance.classification
     );
-    // list of possible labels
+
+    // convert labels to indexes
     let labelsPossible = labels.filter(
       (value, index, self) => self.indexOf(value) === index
     );
-    setLabelsPossible(labelsPossible);
-    // replace labels with index of label in labelsPossible
     labels = labels.map((label) => labelsPossible.indexOf(label));
-    console.log("labels", labels);
 
-    // combine features and labels into one array
+    // shuffle
     const data = features.map((feature, index) => {
       return { feature, label: labels[index] };
     });
-    // shuffle data randomly
     tf.util.shuffle(data);
-
-    console.log("data", data);
-
-    // split data into features and labels
     features = data.map((value) => value.feature);
     labels = data.map((value) => value.label);
 
@@ -152,6 +171,17 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
             console.log("set model", m);
             setModel(m);
             setModelHistory(modelHistory);
+            if (setWorkingData && workingData && workingData.features) {
+              setWorkingData({
+                ...workingData,
+                model: m,
+                modelHistory: modelHistory,
+                modelValidityDataFeatureHash: dataFeatureHash(
+                  workingData.data as DataProcessed,
+                  workingData.features
+                ),
+              });
+            }
           });
         });
       }
@@ -262,6 +292,7 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
                       text: "Loss",
                       color: "darkred",
                     },
+                    min: 0,
                   },
                   yAccuracy: {
                     type: "linear" as const,
@@ -272,6 +303,8 @@ export const ModelTraining = ({ setStepInfo, workingData }: PageProps) => {
                       text: "Accuracy",
                       color: "darkgreen",
                     },
+                    min: 0,
+                    max: 1,
                   },
                   x: {
                     title: {

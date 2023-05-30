@@ -1,10 +1,14 @@
 import { CommonOperations } from "./pre-processing/CommonOperations";
 import { ProcessingPresets } from "./pre-processing/presets";
+import * as tf from "@tensorflow/tfjs";
 
 export interface WorkingData {
   data: APIData | DataProcessed | undefined;
   features?: Feature[];
   selectedPreset?: ProcessingPresets;
+  model?: tf.Sequential | tf.LayersModel;
+  modelHistory?: { loss: number[]; accuracy: number[] };
+  modelValidityDataFeatureHash?: string;
 }
 
 export interface APIData {
