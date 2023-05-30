@@ -1,5 +1,7 @@
 import { PageProps } from "../App";
 import {
+  Alert,
+  AlertIcon,
   Badge,
   Button,
   Container,
@@ -52,7 +54,8 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
     if (
       !workingData?.model ||
       !workingData?.testingData ||
-      !workingData?.data?.classes
+      !workingData?.data?.classes ||
+      workingData.testingData.labels.length < 1
     ) {
       return [];
     }
@@ -113,40 +116,53 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
       <Container maxWidth="container.xl" px={10}>
         <Heading mb={3}>Model Evaluation</Heading>
 
-        <Flex flexDir={"row"} mb={3}>
-          <Heading size={"md"} mr={4}>
-            Accuracy: {Math.round(accuracy * 100)}%
-          </Heading>
-        </Flex>
+        {workingData?.testingData?.labels &&
+        workingData?.testingData?.labels.length > 0 ? (
+          <>
+            <Flex flexDir={"row"} mb={3}>
+              <Heading size={"md"} mr={4}>
+                Accuracy: {Math.round(accuracy * 100)}%
+              </Heading>
+            </Flex>
 
-        <TableContainer>
-          <Table size={"lg"}>
-            <Thead>
-              <Tr>
-                <Th>Actual</Th>
-                <Th>Predicted</Th>
-                <Th>Feature Vector</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {workingData?.testingData?.features.map((feature, index) => (
-                <Tr key={index}>
-                  <Td>
-                    <Badge colorScheme={"purple"}>
-                      {indexToName(workingData?.testingData?.labels[index])}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <Badge colorScheme={"purple"}>
-                      {indexToName(predictions[index])}
-                    </Badge>
-                  </Td>
-                  <Td>{feature.map((f: number) => Math.round(f)).join(",")}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
+            <TableContainer>
+              <Table size={"lg"}>
+                <Thead>
+                  <Tr>
+                    <Th>Actual</Th>
+                    <Th>Predicted</Th>
+                    <Th>Feature Vector</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {workingData?.testingData?.features.map((feature, index) => (
+                    <Tr key={index}>
+                      <Td>
+                        <Badge colorScheme={"purple"}>
+                          {indexToName(workingData?.testingData?.labels[index])}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge colorScheme={"purple"}>
+                          {indexToName(predictions[index])}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        {feature.map((f: number) => Math.round(f)).join(",")}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </>
+        ) : (
+          <Alert variant="subtle" status={"info"}>
+            <AlertIcon />
+            No testing data available. Please go back to the previous step to
+            change the training/testing split.
+          </Alert>
+        )}
 
         <Heading mt={6} mb={3}>
           Model Deployment
