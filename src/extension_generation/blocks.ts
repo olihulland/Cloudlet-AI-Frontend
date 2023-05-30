@@ -50,12 +50,15 @@ ${advanced}
 ${presets}
   
   //% block="generate feature vector from $recording"
+  //% blockId=generateFeatureVector
+  //% recording.shadow="record"
   export function generateFeatureVector(recording: Recording): number[] {
     return featureVector(recording);
   }
 
   //% block="record for $dur seconds"
   //% dur.defl=2
+  //% blockId=record
   export function record(dur: number) {
     const rec = new Recording();
     const startTime = input.runningTime();
@@ -64,6 +67,13 @@ ${presets}
         pause(5);
     }
     return rec;
+  }
+  
+  //% block="predict based on feature vector $featureVector"
+  //% featureVector.shadow="generateFeatureVector"
+  export function predict(featureVector: number[]): Classification {
+    // TODO IMPLEMENT THE PREDICTION HERE!
+    return Classification.Circle;
   }
 `;
 };

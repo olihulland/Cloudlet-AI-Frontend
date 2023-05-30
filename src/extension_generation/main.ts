@@ -4,6 +4,7 @@ import { blocksGenerator } from "./blocks";
 import { generateInterfaces } from "./interfaces";
 import { generateClasses } from "./classes";
 import { generateFeatureVector } from "./featureVector";
+import { generateEnums } from "./enums";
 
 export const getKeysFromRecordInstance = (record: RecordInstance) => {
   let keys = Object.keys(record.data[0]);
@@ -26,7 +27,8 @@ export const generateExtension = (data: WorkingData) => {
         generateClasses(data) +
         "\n" +
         generateFeatureVector(data),
-      "let onShouldAddDataPoint: (recording:Recording)=>void = (recording: Recording)=>null;"
+      "let onShouldAddDataPoint: (recording:Recording)=>void = (recording: Recording)=>null;",
+      generateEnums(data)
     )
   );
 };
