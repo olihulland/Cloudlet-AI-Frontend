@@ -3,7 +3,8 @@ import { TrainingRequestData } from "../types";
 export const getMovementModel = (
   features: number[][],
   labels: number[],
-  numClasses: number
+  numClasses: number,
+  epochs: number
 ): TrainingRequestData => {
   return {
     features: features,
@@ -32,7 +33,7 @@ export const getMovementModel = (
         metrics: ["accuracy"],
       },
       fit: {
-        epochs: 40,
+        epochs: epochs,
         batchSize: 32,
       },
     },

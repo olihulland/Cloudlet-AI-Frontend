@@ -16,6 +16,19 @@ import {
   SliderFilledTrack,
   SliderThumb,
   Spacer,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  NumberInputStepper,
+  FormControl,
+  NumberDecrementStepper,
+  FormHelperText,
+  NumberInputField,
+  AccordionIcon,
+  NumberInput,
+  FormLabel,
+  AccordionPanel,
+  NumberIncrementStepper,
 } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
@@ -70,6 +83,7 @@ export const ModelTraining = ({
   const [testingData, setTestingData] = useState<
     { features: any[]; labels: number[] } | undefined
   >(undefined);
+  const [numEpochs, setNumEpochs] = useState<number>(30);
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -207,7 +221,8 @@ export const ModelTraining = ({
     const modelSchema = getMovementModel(
       trainingData.features,
       trainingData.labels,
-      numClasses
+      numClasses,
+      numEpochs
     );
     requestTrainModel(modelSchema).then((res) => {
       if (res.status < 200 || res.status >= 300) {
@@ -247,6 +262,7 @@ export const ModelTraining = ({
                 ),
                 trainingProportion: trainingProportion,
                 testingData: testingData,
+                numEpochs: numEpochs,
               });
             }
             if (setStepInfo) {
@@ -335,6 +351,42 @@ export const ModelTraining = ({
             </Text>
           </Flex>
         </Container>
+
+        <Accordion allowToggle my={5}>
+          <AccordionItem>
+            <AccordionButton>
+              <Box flex="1" textAlign="left">
+                Advanced Options
+              </Box>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel pb={4}>
+              <FormControl id="numEpochs">
+                <FormLabel>Number of Epochs</FormLabel>
+                <NumberInput
+                  defaultValue={numEpochs}
+                  min={3}
+                  max={60}
+                  step={1}
+                  onChange={(value) => {
+                    if (value) setNumEpochs(parseInt(value));
+                  }}
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+                <FormHelperText>
+                  The number of times the model will be trained on the entire
+                  training set. More epochs can improve accuracy, but can also
+                  lead to overfitting.
+                </FormHelperText>
+              </FormControl>
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
 
         <Center m={5}>
           <Button

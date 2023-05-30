@@ -10,6 +10,7 @@ export interface WorkingData {
   modelHistory?: { loss: number[]; accuracy: number[] };
   modelValidityDataFeatureHash?: string;
   trainingProportion?: number;
+  numEpochs?: number;
   testingData?: { features: any[]; labels: number[] };
 }
 
