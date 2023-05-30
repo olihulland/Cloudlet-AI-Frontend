@@ -9,6 +9,8 @@ export interface WorkingData {
   model?: tf.Sequential | tf.LayersModel;
   modelHistory?: { loss: number[]; accuracy: number[] };
   modelValidityDataFeatureHash?: string;
+  trainingProportion?: number;
+  testingData?: { features: any[]; labels: number[] };
 }
 
 export interface APIData {

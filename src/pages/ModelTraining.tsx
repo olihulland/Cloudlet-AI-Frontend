@@ -1,12 +1,21 @@
 import { PageProps } from "../App";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Center,
   Container,
   Heading,
   Button,
+  Text,
   Flex,
   useToast,
   Box,
+  Alert,
+  AlertIcon,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  Spacer,
 } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
@@ -55,6 +64,10 @@ export const ModelTraining = ({
     tf.Sequential | tf.LayersModel | undefined
   >(undefined);
   const [modelHistory, setModelHistory] = useState<any>();
+  const [trainingProportion, setTrainingProportion] = useState<number>(0.8);
+  const [testingData, setTestingData] = useState<
+    { features: any[]; labels: number[] } | undefined
+  >(undefined);
 
   const toast = useToast();
 
@@ -70,7 +83,8 @@ export const ModelTraining = ({
       workingData.model &&
       workingData.modelHistory &&
       workingData.data &&
-      workingData.features
+      workingData.features &&
+      workingData.trainingProportion
     ) {
       const dfh = dataFeatureHash(
         workingData.data as DataProcessed,
@@ -79,6 +93,7 @@ export const ModelTraining = ({
       if (dfh === workingData.modelValidityDataFeatureHash) {
         setModel(workingData.model);
         setModelHistory(workingData.modelHistory);
+        setTrainingProportion(workingData.trainingProportion);
       }
     }
   }, []);
@@ -106,11 +121,43 @@ export const ModelTraining = ({
     features = data.map((value) => value.feature);
     labels = data.map((value) => value.label);
 
+    // split into training and testing ensuring that each class is represented
+    const numTraining = Math.floor(features.length * trainingProportion);
+    let trainFeatures = [];
+    let trainLabels = [];
+    let testFeatures = [];
+    let testLabels = [];
+
+    let idealClassCountForTrain = Math.ceil(
+      numTraining / labelsPossible.length
+    );
+    let trainClassCounts = new Array(labelsPossible.length).fill(0);
+    let testClassCounts = new Array(labelsPossible.length).fill(0);
+    for (let i = 0; i < features.length; i++) {
+      if (
+        trainClassCounts[labels[i]] < idealClassCountForTrain &&
+        trainLabels.length < numTraining
+      ) {
+        trainFeatures.push(features[i]);
+        trainLabels.push(labels[i]);
+        trainClassCounts[labels[i]]++;
+      } else {
+        testFeatures.push(features[i]);
+        testLabels.push(labels[i]);
+        testClassCounts[labels[i]]++;
+      }
+    }
+
+    setTestingData({
+      features: testFeatures,
+      labels: testLabels,
+    });
+
     return {
-      features: features,
-      labels: labels,
+      features: trainFeatures,
+      labels: trainLabels,
     };
-  }, [workingData]);
+  }, [workingData, trainingProportion]);
 
   const numClasses = useMemo(() => {
     if (!workingData || workingData.data === undefined) return undefined;
@@ -157,6 +204,7 @@ export const ModelTraining = ({
             position: "top",
           });
           console.error(text);
+          setTraining(false);
         });
       } else {
         res.json().then((json) => {
@@ -180,161 +228,173 @@ export const ModelTraining = ({
                   workingData.data as DataProcessed,
                   workingData.features
                 ),
+                trainingProportion: trainingProportion,
+                testingData: testingData,
               });
             }
+            setTraining(false);
           });
         });
       }
     });
-
-    setTraining(false);
-  };
-
-  const sendModel = async () => {
-    if (!model) {
-      console.error("Model undefined - unable to send");
-      return;
-    }
-    console.log("sending model");
-
-    await model.save(`${process.env.REACT_APP_API_URL}/model`);
-
-    console.log("model sent");
-  };
-
-  const getModelFile = async () => {
-    console.log("getting model file");
-    const response = await fetch(
-      `${process.env.REACT_APP_API_URL}/model-header`
-    );
-    // get file sent in response
-    const blob = await response.blob();
-    // create a local URL for it
-    const url = window.URL.createObjectURL(blob);
-    // and open it in a new tab
-    window.open(url);
   };
 
   return (
     <>
       <Container maxWidth="container.xl" px={10}>
-        <Heading>Model Training</Heading>
-        <Flex gap={2}>
+        <Heading mb={3}>Model Training</Heading>
+        <Heading size="md" mb={2}>
+          Training/Test Split
+        </Heading>
+        <Alert status="info" variant="subtle" m={3} bgColor={"gray.100"}>
+          <AlertIcon />
+          The data is split into training and test sets. The training set is
+          used to train the model, and the test set is used to evaluate the
+          model's performance on the next page. Use the slider to adjust the
+          proportion of the data that is used for training.
+        </Alert>
+
+        <Container maxW={"container.md"}>
+          <Flex flexDir={"row"}>
+            <Text>Training</Text>
+            <Spacer />
+            <Text>Testing</Text>
+          </Flex>
+          <Slider
+            aria-label="slider-train-test-split"
+            defaultValue={0.8}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={(value) => {
+              let min = 0.2;
+              if (numClasses && numFeatures) {
+                const minPossibleTrainProp =
+                  Math.ceil(numClasses / numFeatures / 0.05) * 0.05;
+                if (minPossibleTrainProp > min) min = minPossibleTrainProp;
+              }
+              if (value >= min) setTrainingProportion(value);
+              else if (value > trainingProportion) setTrainingProportion(min);
+            }}
+            value={trainingProportion}
+          >
+            <SliderTrack>
+              <SliderFilledTrack />
+            </SliderTrack>
+            <SliderThumb />
+          </Slider>
+          <Flex flexDir={"row"}>
+            <Text>
+              {Math.round((trainingProportion ?? 0) * 100)}%{" "}
+              {workingData && workingData.data
+                ? "(" +
+                  Math.floor(
+                    workingData.data.record_instances.length *
+                      (trainingProportion ?? 0)
+                  ).toString() +
+                  ")"
+                : ""}
+            </Text>
+            <Spacer />
+            <Text>
+              {Math.round((1 - (trainingProportion ?? 0)) * 100)}%{" "}
+              {workingData && workingData.data
+                ? "(" +
+                  (
+                    workingData.data.record_instances.length -
+                    Math.floor(
+                      workingData.data.record_instances.length *
+                        (trainingProportion ?? 0)
+                    )
+                  ).toString() +
+                  ")"
+                : ""}
+            </Text>
+          </Flex>
+        </Container>
+
+        <Center m={5}>
           <Button
             colorScheme="green"
             size="lg"
             isLoading={training}
             onClick={trainModel}
           >
-            Train!
+            Train Model
           </Button>
-          <Button
-            isDisabled={!model}
-            onClick={() => {
-              if (!model) return;
-              const result = model.predict(
-                tf.tensor([
-                  [
-                    2040, -2040, 1417.7388672553543, 0, 2040, -984,
-                    824.3757332978387, 0, 2040, -2040, 1521.0920462644638, 0,
-                    2129.6180555555557,
-                  ],
-                ])
-              );
-              console.log("result 0", result.toString());
-            }}
-          >
-            Predict 0
-          </Button>
-          <Button
-            isDisabled={!model}
-            onClick={() => {
-              if (!model) return;
-              const result = model.predict(
-                tf.tensor([
-                  [
-                    140, 124, 3.6154803433579334, 0, -12, -28,
-                    3.961766964913097, 0, -996, -1016, 4.211320472937928, 0,
-                    1015.73125,
-                  ],
-                ])
-              );
-              console.log("result 1", result.toString());
-            }}
-          >
-            Predict 1
-          </Button>
-          <Button
-            colorScheme="blue"
-            size="lg"
-            onClick={sendModel}
-            disabled={!model}
-          >
-            Send Model
-          </Button>
-          <Button colorScheme="orange" size="lg" onClick={getModelFile}>
-            Get Model
-          </Button>
-        </Flex>
-        <Box>
+        </Center>
+        <Box mt={4}>
           <Heading>Model History</Heading>
           {modelHistory ? (
-            <Line
-              options={{
-                responsive: true,
-                scales: {
-                  yLoss: {
-                    type: "linear" as const,
-                    display: true,
-                    position: "left" as const,
-                    title: {
+            <>
+              <Text my={3}>
+                This graph shows the accuracy and loss of the model during
+                training based only on the training data. A better model has
+                higher accuracy and lower loss. We can't see how this model
+                performs on unseen data until we evaluate it on the next page.
+              </Text>
+              <Line
+                options={{
+                  responsive: true,
+                  scales: {
+                    yLoss: {
+                      type: "linear" as const,
                       display: true,
-                      text: "Loss",
-                      color: "darkred",
+                      position: "left" as const,
+                      title: {
+                        display: true,
+                        text: "Loss",
+                        color: "darkred",
+                      },
+                      min: 0,
                     },
-                    min: 0,
-                  },
-                  yAccuracy: {
-                    type: "linear" as const,
-                    display: true,
-                    position: "right" as const,
-                    title: {
+                    yAccuracy: {
+                      type: "linear" as const,
                       display: true,
-                      text: "Accuracy",
-                      color: "darkgreen",
+                      position: "right" as const,
+                      title: {
+                        display: true,
+                        text: "Accuracy",
+                        color: "darkgreen",
+                      },
+                      min: 0,
+                      max: 1,
                     },
-                    min: 0,
-                    max: 1,
-                  },
-                  x: {
-                    title: {
-                      display: true,
-                      text: "Epoch",
+                    x: {
+                      title: {
+                        display: true,
+                        text: "Epoch",
+                      },
                     },
                   },
-                },
-              }}
-              data={{
-                labels: modelHistory.loss.map((_: any, n: any) => n + 1),
-                datasets: [
-                  {
-                    label: "Loss",
-                    data: modelHistory.loss,
-                    borderColor: "red",
-                    backgroundColor: "red",
-                    yAxisID: "yLoss",
-                  },
-                  {
-                    label: "Accuracy",
-                    data: modelHistory.accuracy,
-                    borderColor: "green",
-                    backgroundColor: "green",
-                    yAxisID: "yAccuracy",
-                  },
-                ],
-              }}
-            />
-          ) : null}
+                }}
+                data={{
+                  labels: modelHistory.loss.map((_: any, n: any) => n + 1),
+                  datasets: [
+                    {
+                      label: "Loss",
+                      data: modelHistory.loss,
+                      borderColor: "red",
+                      backgroundColor: "red",
+                      yAxisID: "yLoss",
+                    },
+                    {
+                      label: "Accuracy",
+                      data: modelHistory.accuracy,
+                      borderColor: "green",
+                      backgroundColor: "green",
+                      yAxisID: "yAccuracy",
+                    },
+                  ],
+                }}
+              />
+            </>
+          ) : (
+            <Alert status="info" variant="subtle" m={3} bgColor={"gray.100"}>
+              <AlertIcon />
+              Train a model to see it's training history.
+            </Alert>
+          )}
         </Box>
       </Container>
     </>
