@@ -20,6 +20,8 @@ import {
   ModalBody,
   ModalCloseButton,
   Code,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { EditIcon, RepeatIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import {
@@ -56,6 +58,7 @@ export const PreProcessingFeatureTile = ({
 
   const [code, setCode] = useState<string>();
   const [codeError, setCodeError] = useState<boolean>();
+  const [errorMsg, setErrorMsg] = useState<string>();
 
   const codeEditorDisclosure = useDisclosure();
 
@@ -69,13 +72,15 @@ export const PreProcessingFeatureTile = ({
         setCodeError(true);
         return;
       }
-      let fn = new Function("record", code);
+      let fn = new Function("data", code);
       // @ts-ignore
       let res = fn.call(null, { data: [] } as RecordInstance);
       if (res === undefined || typeof res !== "number") throw new Error();
-      return setCodeError(false);
-    } catch (e) {
-      return setCodeError(true);
+      setCodeError(false);
+      setErrorMsg(undefined);
+    } catch (e: any) {
+      setCodeError(true);
+      setErrorMsg(e.message);
     }
   }, [code]);
 
@@ -115,11 +120,13 @@ export const PreProcessingFeatureTile = ({
   const becomeCustom = () => {
     setFeature({
       ...feature,
-      calculate: `// input is 'record' which is a record instance
-// the return value must be a number representing the value of the feature after processing
+      calculate: `// the return value must be a number representing the value of the feature after processing
+
+// you must check a data point is defined before use - it will be ran against an empty list to check for errors
   
-const input = record;
-const theDataPoints = record.data;
+// variable 'data' is an array of data points
+// console.log("data points:", data, "first data point:", data[0]);
+// if (data[0]) console.log("first data point n:", data[0].n);
 
 return 0;`,
     });
@@ -222,6 +229,7 @@ return 0;`,
                     if (code !== feature.calculate.toString())
                       setCode(feature.calculate.toString());
                     codeEditorDisclosure.onClose();
+                    console.log(workingData?.data?.record_instances[0].data);
                   }}
                   size={"5xl"}
                 >
@@ -234,18 +242,25 @@ return 0;`,
                         <p>
                           This is custom code written in JavaScript. It must
                           return a <Code>number</Code> and has access to the
-                          record instance using the variable <Code>record</Code>
-                          .
+                          record instance data using the variable{" "}
+                          <Code>data</Code>.
                         </p>
                         <p>
                           No libraries are available, but you can use any
                           JavaScript features that are available in the browser.
                         </p>
                         <p>
-                          See an example of <Code>record</Code> and run your
-                          code against it using the blue buttons below.
+                          See an example of <Code>data</Code> and run your code
+                          against it using the blue buttons below.
                         </p>
                       </Text>
+                      <Alert status={"warning"}>
+                        <AlertIcon />
+                        Features created using custom code may cause errors in
+                        the exported MakeCode extension due to a MakeCode
+                        bug/limitation. If you encounter this, please use the
+                        "Common" option instead.
+                      </Alert>
                       <CodeEditor
                         value={code}
                         language={"javascript"}
@@ -283,7 +298,7 @@ return 0;`,
                           onClick={() => {
                             if (code === undefined) return;
                             let fn = new Function(
-                              "record",
+                              "data",
                               code
                             ) as FeatureCalculatorFunction;
                             if (workingData?.data?.record_instances)
@@ -293,6 +308,7 @@ return 0;`,
                                     .call(
                                       null,
                                       workingData?.data?.record_instances[0]
+                                        .data
                                     )
                                     .toString()
                               );
@@ -305,19 +321,25 @@ return 0;`,
                         {saveButton}
                       </Flex>
 
+                      {codeError && (
+                        <Alert status={"error"}>
+                          <AlertIcon />
+                          {errorMsg}
+                        </Alert>
+                      )}
+
                       {viewJSONDisclosure.isOpen && (
                         <Box mt={5}>
                           <Center mb={3}>
-                            <Heading size={"sm"}>First Record:</Heading>
+                            <Heading size={"sm"}>
+                              <Code>data[0]:</Code>
+                            </Heading>
                           </Center>
 
                           <Box px={5} pb={5}>
                             <JSONPretty
                               id="json-pretty"
-                              data={{
-                                ...workingData?.data?.record_instances[0],
-                                featureVector: undefined,
-                              }}
+                              data={workingData?.data?.record_instances[0].data}
                               theme={JSONPrettyTheme}
                               mainStyle="padding:1em"
                             />

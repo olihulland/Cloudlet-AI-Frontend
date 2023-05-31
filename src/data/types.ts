@@ -66,7 +66,7 @@ export interface Feature {
 
 export type FeatureCalculator = string | CommonFeatureCalculator;
 
-export type FeatureCalculatorFunction = (data: { data: DataPoint[] }) => number;
+export type FeatureCalculatorFunction = (data: DataPoint[]) => number;
 export type CommonFeatureCalculator = {
   op: CommonOperations;
   key: string;
