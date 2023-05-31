@@ -36,8 +36,6 @@ export const PreProcessing = ({
     workingData?.features || []
   );
 
-  const graphContainer = useRef();
-
   const navigate = useNavigate();
 
   const stepInfoTemplate = {
@@ -105,7 +103,7 @@ export const PreProcessing = ({
 
   return (
     <>
-      <Container maxWidth="80%" px={10} ref={graphContainer as any}>
+      <Container maxWidth="80%" px={10}>
         <Heading>Data Pre-Processing</Heading>
         <FormControl>
           <FormLabel>Select pre-processing preset:</FormLabel>
@@ -159,7 +157,6 @@ export const PreProcessing = ({
               <PreProcessingGraph
                 features={features}
                 workingData={workingData}
-                containerRef={graphContainer}
               />
             </AccordionPanel>
           </AccordionItem>

@@ -1,27 +1,16 @@
-import {
-  Text as RechartsText,
-  Legend,
-  Scatter,
-  ScatterChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ZAxis,
-} from "recharts";
 import { Center, Text } from "@chakra-ui/react";
 import { APIData, DataProcessed, Feature, WorkingData } from "../data/types";
 import { useEffect, useMemo, useState } from "react";
 import { solveFeature } from "../data/pre-processing/CommonOperations";
 import { getClassName } from "../data/utils";
+import { Scatter } from "react-chartjs-2";
 
 export const PreProcessingGraph = ({
   workingData,
   features,
-  containerRef,
 }: {
   workingData: WorkingData | undefined;
   features: Feature[] | undefined;
-  containerRef: any;
 }) => {
   const classes = useMemo(() => {
     if (!workingData || workingData.data === undefined) return [];
@@ -37,24 +26,6 @@ export const PreProcessingGraph = ({
     return classes;
   }, [workingData, workingData?.data?.record_instances]);
 
-  const graphData = useMemo(() => {
-    if (!features) return [];
-    return classes.map(({ name: className, num: classNum }) => {
-      return workingData?.data?.record_instances
-        .filter((instance) => instance.classification === classNum)
-        .map((instance) => {
-          return features.map((feature, index) => {
-            return {
-              x: index,
-              xName: feature.name,
-              y: solveFeature(feature, instance),
-              class: className,
-            };
-          });
-        });
-    });
-  }, [workingData, features, classes]);
-
   const colours = [
     "#FF6347",
     "#FFD700",
@@ -68,52 +39,84 @@ export const PreProcessingGraph = ({
     "#FFA500",
   ];
 
-  const [width, setWidth] = useState(600);
-  useEffect(() => {
-    const w = containerRef?.current?.clientWidth;
-    if (w) setWidth(w * 0.8);
-  }, [containerRef]);
+  const graphData = useMemo(() => {
+    if (!features) return [];
+    let data: {
+      label: string; // class name
+      data: {
+        x: string;
+        y: number;
+      }[];
+      backgroundColor: string;
+    }[] = [];
+
+    classes.forEach((c, i) => {
+      let d: {
+        x: string;
+        y: number;
+      }[] = [];
+
+      workingData?.data?.record_instances
+        .filter((instance) => {
+          return instance.classification === c.num;
+        })
+        .forEach((instance) => {
+          features.forEach((feature, index) => {
+            const value = solveFeature(feature, instance);
+            d.push({
+              x: feature.name,
+              y: value,
+            });
+          });
+        });
+
+      data.push({
+        label: c.name,
+        backgroundColor: colours[i % colours.length],
+        data: d,
+      });
+    });
+
+    // TODO normalise by feature
+    // const combinedData = data.map((d) => d.data).flat();
+    // const featureRanges: {
+    //   fName: string;
+    //   min: number;
+    //   max: number;
+    //   range: number;
+    // }[] = [];
+    // features.forEach((f, i) => {
+    //   const values = combinedData.filter((d) => d.x === f.name).map((d) => d.y);
+    //   featureRanges.push({
+    //     fName: f.name,
+    //     min: Math.min(...values),
+    //     max: Math.max(...values),
+    //     range: Math.max(...values) - Math.min(...values),
+    //   });
+    // });
+    // console.log("feature ranges", featureRanges);
+    //
+    // const biggestRange = featureRanges.reduce((prev, curr) =>
+    //   prev.range > curr.range ? prev : curr
+    // );
+    // console.log("biggest range", biggestRange);
+
+    return data;
+  }, [workingData, features, classes]);
 
   return (
     <Center>
-      <ScatterChart
-        width={width}
-        height={500}
-        margin={{
-          top: 20,
-          right: 20,
-          bottom: 10,
-          left: 10,
+      <Scatter
+        data={{ datasets: graphData, labels: features?.map((f) => f.name) }}
+        options={{
+          scales: {
+            x: {
+              type: "category",
+              labels: features?.map((f) => f.name),
+            },
+          },
         }}
-      >
-        <XAxis
-          dataKey="x"
-          type="number"
-          name="Feature"
-          tickFormatter={(num) =>
-            features && features?.[num] ? features?.[num].name : num
-          }
-          ticks={features?.map((_, index) => index)}
-          interval={0}
-          max={features?.length}
-        />
-        <YAxis dataKey="y" type="number" name="Value" />
-        <ZAxis dataKey="xName" type="category" name="Feature Name" />
-        <ZAxis dataKey="class" type={"category"} name="Class" />
-        {classes.map(({ name: className }, index) => {
-          return (
-            <Scatter
-              key={index}
-              name={className}
-              data={graphData?.[index]?.flat()}
-              fill={colours[index % colours.length]}
-            />
-          );
-        })}
-
-        <Legend />
-        <Tooltip />
-      </ScatterChart>
+      />
     </Center>
   );
 };
