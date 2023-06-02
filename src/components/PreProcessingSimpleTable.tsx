@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import * as math from "mathjs";
 import { getClassName } from "../data/utils";
 import { solveFeature } from "../data/pre-processing/CommonOperations";
+import { getClassColourScheme } from "../utils/colour";
 
 interface Props {
   features: Feature[];
@@ -113,7 +114,9 @@ export const PreProcessingSimpleTable = ({
               (record: RecordInstanceProcessed) => (
                 <Tr key={record.uniqueID}>
                   <Td>
-                    <Badge colorScheme={"purple"}>
+                    <Badge
+                      colorScheme={getClassColourScheme(record.classification)}
+                    >
                       {record.classification != null
                         ? workingData.data !== undefined &&
                           getClassName(record.classification, workingData.data)

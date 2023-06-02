@@ -1,6 +1,7 @@
 import { DataPoint } from "../data/types";
 import { Box, HStack, VStack, Text, Flex } from "@chakra-ui/react";
 import { useMemo } from "react";
+import { colours } from "../utils/colour";
 
 export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
   const width = 400;
@@ -32,19 +33,6 @@ export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
       return data[data.length - 1][b] - data[data.length - 1][a];
     });
   }, [data]);
-
-  const colours = [
-    "#FF6347",
-    "#FFD700",
-    "#008080",
-    "#fc9ca9",
-    "#9932CC",
-    "#FFA07A",
-    "#6495ED",
-    "#00FFFF",
-    "#00FF00",
-    "#FFA500",
-  ];
 
   return (
     <Flex>

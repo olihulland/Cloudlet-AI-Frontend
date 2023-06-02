@@ -21,6 +21,7 @@ import * as tf from "@tensorflow/tfjs";
 import { Tensor } from "@tensorflow/tfjs";
 import { generateExtension } from "../extension_generation/main";
 import { DataProcessed } from "../data/types";
+import { getClassColourScheme } from "../utils/colour";
 
 export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -140,12 +141,18 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
                   {workingData?.testingData?.features.map((feature, index) => (
                     <Tr key={index}>
                       <Td>
-                        <Badge colorScheme={"purple"}>
+                        <Badge
+                          colorScheme={getClassColourScheme(
+                            workingData?.testingData?.labels[index]
+                          )}
+                        >
                           {indexToName(workingData?.testingData?.labels[index])}
                         </Badge>
                       </Td>
                       <Td>
-                        <Badge colorScheme={"purple"}>
+                        <Badge
+                          colorScheme={getClassColourScheme(predictions[index])}
+                        >
                           {indexToName(predictions[index])}
                         </Badge>
                       </Td>

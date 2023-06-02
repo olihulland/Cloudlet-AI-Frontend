@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { solveFeature } from "../data/pre-processing/CommonOperations";
 import { getClassName } from "../data/utils";
 import { Scatter } from "react-chartjs-2";
+import { getClassColour } from "../utils/colour";
 
 export const PreProcessingGraph = ({
   workingData,
@@ -25,19 +26,6 @@ export const PreProcessingGraph = ({
     });
     return classes;
   }, [workingData, workingData?.data?.record_instances]);
-
-  const colours = [
-    "#FF6347",
-    "#FFD700",
-    "#008080",
-    "#FFC0CB",
-    "#9932CC",
-    "#FFA07A",
-    "#6495ED",
-    "#00FFFF",
-    "#00FF00",
-    "#FFA500",
-  ];
 
   const graphData = useMemo(() => {
     if (!features) return [];
@@ -72,7 +60,7 @@ export const PreProcessingGraph = ({
 
       data.push({
         label: c.name,
-        backgroundColor: colours[i % colours.length],
+        backgroundColor: getClassColour(i),
         data: d,
       });
     });

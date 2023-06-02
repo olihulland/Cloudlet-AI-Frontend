@@ -48,6 +48,8 @@ import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 import { getClassName, getFriendlyMicrobitID } from "../data/utils";
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import { RawDataSVGLine } from "../components/RawDataSVGLine";
+import { getClassColourScheme } from "../utils/colour";
+import { FiRadio } from "react-icons/fi";
 
 export const Data = ({
   setStepInfo,
@@ -120,15 +122,6 @@ export const Data = ({
       <Card flexGrow={1}>
         <CardBody>
           <Stat>
-            <StatLabel>Number of known microbits</StatLabel>
-            <StatNumber>{getDataQuery.data?.microbits.length}</StatNumber>
-            <StatHelpText>(known to the cloud)</StatHelpText>
-          </Stat>
-        </CardBody>
-      </Card>
-      <Card flexGrow={1}>
-        <CardBody>
-          <Stat>
             <StatLabel>Number of contributing microbits</StatLabel>
             <StatNumber>
               {
@@ -139,15 +132,22 @@ export const Data = ({
                 }, [] as any[]).length
               }
             </StatNumber>
-            <StatHelpText>(contributed recordings)</StatHelpText>
           </Stat>
         </CardBody>
       </Card>
       <Card flexGrow={1}>
         <CardBody>
-          <VStack>
-            <Button onClick={ident}>Identify Micro:bits</Button>
-          </VStack>
+          <Stat>
+            <StatLabel>Identify Micro:bits</StatLabel>
+            <StatNumber>
+              {/*<Button onClick={ident}>Identify Micro:bits</Button>*/}
+              <IconButton
+                aria-label={"Identify Micro:bits"}
+                icon={<FiRadio />}
+              />
+            </StatNumber>
+            <StatHelpText></StatHelpText>
+          </Stat>
         </CardBody>
       </Card>
     </Flex>
@@ -173,7 +173,7 @@ export const Data = ({
                   <Td>{classID}</Td>
                   <Td>
                     <HStack>
-                      <Badge colorScheme={"purple"}>
+                      <Badge colorScheme={getClassColourScheme(classID)}>
                         {
                           getDataQuery.data?.classes.find(
                             (classObj) =>
@@ -288,7 +288,11 @@ export const Data = ({
                       <RawDataSVGLine data={record.data} />
                     </Td>
                     <Td>
-                      <Badge colorScheme={"purple"}>
+                      <Badge
+                        colorScheme={getClassColourScheme(
+                          record.classification
+                        )}
+                      >
                         {record.classification != null
                           ? getDataQuery.data !== undefined &&
                             getClassName(
