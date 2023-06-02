@@ -27,62 +27,16 @@ import { solveFeature } from "../data/pre-processing/CommonOperations";
 import { getClassColourScheme } from "../utils/colour";
 
 interface Props {
-  features: Feature[];
-  setWorkingData?: (newData: WorkingData) => void;
+  isProcessed: boolean;
+  processedData?: { [key: string]: any[] };
   workingData?: WorkingData;
 }
 
 export const PreProcessingSimpleTable = ({
-  features,
   workingData,
-  setWorkingData,
+  isProcessed,
+  processedData,
 }: Props) => {
-  const [isProcessed, setisProcessed] = useState<boolean>(false);
-
-  const processedData = useMemo(() => {
-    let toReturn: { [key: string]: any[] } = {};
-    if (workingData !== undefined && workingData.data !== undefined) {
-      for (const record of workingData.data.record_instances) {
-        toReturn[record.uniqueID] = [];
-        for (const feature of features) {
-          const processedFeature: any = { ...feature };
-          let res = solveFeature(feature, record);
-          processedFeature["result"] = res;
-          toReturn[record.uniqueID].push({ ...processedFeature });
-        }
-      }
-    }
-    return toReturn;
-  }, [features, workingData]);
-
-  useEffect(() => {
-    if (
-      workingData !== undefined &&
-      setWorkingData !== undefined &&
-      processedData !== undefined
-    ) {
-      if (Object.keys(processedData).length > 0) {
-        let newWorkingData = workingData;
-        if (newWorkingData.data !== undefined) {
-          newWorkingData.data.record_instances =
-            newWorkingData.data.record_instances
-              .map((record: RecordInstance) => {
-                let newRecord = record as RecordInstanceProcessed;
-                newRecord.featureVector = processedData[record.uniqueID].map(
-                  (proc: any) => proc.result
-                );
-                return newRecord;
-              })
-              .sort((a, b) => {
-                return a.classification - b.classification;
-              });
-          setWorkingData(newWorkingData);
-          setisProcessed(true);
-        }
-      }
-    }
-  }, [processedData, workingData, setWorkingData]);
-
   if (workingData === undefined) {
     return (
       <Alert status={"warning"}>
@@ -95,7 +49,7 @@ export const PreProcessingSimpleTable = ({
     );
   }
 
-  if (isProcessed) {
+  if (isProcessed && processedData) {
     return (
       <TableContainer>
         <Table>

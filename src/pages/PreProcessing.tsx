@@ -25,6 +25,7 @@ import { ProcessingPresets } from "../data/pre-processing/presets";
 import { PreProcessingFeatureList } from "../components/PreProcessingFeatureList";
 import { PreProcessingGraph } from "../components/PreProcessingGraph";
 import { useNavigate } from "react-router-dom";
+import { PreProcessor } from "../components/PreProcessor";
 
 export const PreProcessing = ({
   setStepInfo,
@@ -35,6 +36,10 @@ export const PreProcessing = ({
   const [features, setFeatures] = useState<Feature[]>(
     workingData?.features || []
   );
+
+  // handled by PreProcessor:
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
+  const [processedData, setProcessedData] = useState();
 
   const navigate = useNavigate();
 
@@ -103,7 +108,7 @@ export const PreProcessing = ({
 
   return (
     <>
-      <Container maxWidth="80%" px={10}>
+      <Container maxWidth="container.xl">
         <Heading>Data Pre-Processing</Heading>
         <FormControl>
           <FormLabel>Select pre-processing preset:</FormLabel>
@@ -171,9 +176,9 @@ export const PreProcessing = ({
             <AccordionPanel>
               {features.length > 0 ? (
                 <PreProcessingSimpleTable
-                  features={features}
-                  setWorkingData={setWorkingData}
+                  isProcessed={isProcessed}
                   workingData={workingData}
+                  processedData={processedData}
                 />
               ) : (
                 <Alert>
@@ -186,6 +191,15 @@ export const PreProcessing = ({
           </AccordionItem>
         </Accordion>
       </Container>
+      {features.length > 0 && workingData && setWorkingData && (
+        <PreProcessor
+          features={features}
+          workingData={workingData}
+          setWorkingData={setWorkingData}
+          setIsProcessed={setIsProcessed}
+          setProcessedData={setProcessedData}
+        />
+      )}
     </>
   );
 };
