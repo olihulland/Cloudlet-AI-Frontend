@@ -77,7 +77,7 @@ export const PreProcessingGraph = ({
       });
     });
 
-    // TODO normalise by feature
+    // TODO normalise by feature - maybe easier to do at start before splitting by classification!
     // const combinedData = data.map((d) => d.data).flat();
     // const featureRanges: {
     //   fName: string;

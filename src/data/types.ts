@@ -49,6 +49,7 @@ export interface RecordInstanceProcessed extends RecordInstance {
 
 export interface DataPoint {
   n: number;
+  [key: string]: number;
 }
 
 export interface AccelDataPoint extends DataPoint {

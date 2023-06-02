@@ -47,6 +47,7 @@ import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
 import { getClassName, getFriendlyMicrobitID } from "../data/utils";
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
+import { RawDataSVGLine } from "../components/RawDataSVGLine";
 
 export const Data = ({
   setStepInfo,
@@ -259,14 +260,17 @@ export const Data = ({
             <Thead>
               <Tr>
                 <Th>MicroBit ID</Th>
-                <Th>Record ID</Th>
+                <Th></Th>
                 <Th>Class</Th>
                 <Th></Th>
               </Tr>
             </Thead>
             <Tbody>
-              {getDataQuery.data?.record_instances.map(
-                (record: RecordInstance) => (
+              {getDataQuery.data?.record_instances
+                .sort((a, b) => {
+                  return a.classification - b.classification;
+                })
+                .map((record: RecordInstance) => (
                   <Tr key={record.uniqueID}>
                     <Td>
                       {getDataQuery.data !== undefined &&
@@ -280,7 +284,9 @@ export const Data = ({
                           )
                         : record.deviceID}
                     </Td>
-                    <Td>{record.uniqueID}</Td>
+                    <Td>
+                      <RawDataSVGLine data={record.data} />
+                    </Td>
                     <Td>
                       <Badge colorScheme={"purple"}>
                         {record.classification != null
@@ -303,8 +309,7 @@ export const Data = ({
                       </Button>
                     </Td>
                   </Tr>
-                )
-              )}
+                ))}
             </Tbody>
           </Table>
         </TableContainer>
