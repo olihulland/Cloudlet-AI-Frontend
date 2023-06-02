@@ -20,10 +20,8 @@ import {
   Tr,
 } from "@chakra-ui/react";
 import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
 import * as math from "mathjs";
 import { getClassName } from "../data/utils";
-import { solveFeature } from "../data/pre-processing/CommonOperations";
 import { getClassColourScheme } from "../utils/colour";
 
 interface Props {
