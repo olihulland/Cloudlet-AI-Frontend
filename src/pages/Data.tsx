@@ -38,6 +38,11 @@ import {
   PopoverArrow,
   CardHeader,
   Badge,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { PageProps } from "../App";
@@ -50,6 +55,7 @@ import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import { RawDataSVGLine } from "../components/RawDataSVGLine";
 import { getClassColourScheme } from "../utils/colour";
 import { FiRadio } from "react-icons/fi";
+import { HelpTextContainer } from "../components/HelpTextContainer";
 
 export const Data = ({
   setStepInfo,
@@ -155,7 +161,6 @@ export const Data = ({
 
   const CLASS_SECTION = (
     <Box mb={3}>
-      <Heading>Classes</Heading>
       <TableContainer>
         <Table>
           <Thead>
@@ -239,21 +244,6 @@ export const Data = ({
 
   const RAW_DATA_SECTION = (
     <>
-      <Heading>Raw Data</Heading>
-      {getDataQuery.isLoading && (
-        <VStack>
-          <Spinner size={"xl"} />
-          <Heading size={"md"}>Loading Data ...</Heading>
-        </VStack>
-      )}
-      {getDataQuery.isError && (
-        <Container>
-          <Alert status="error">
-            <AlertIcon />
-            <AlertTitle>Error Loading Data</AlertTitle>
-          </Alert>
-        </Container>
-      )}
       {getDataQuery.isSuccess && (
         <TableContainer>
           <Table>
@@ -325,8 +315,54 @@ export const Data = ({
     <>
       <Container maxWidth="container.xl" px={10}>
         {STATS_BANNER}
-        {CLASS_SECTION}
-        {RAW_DATA_SECTION}
+        <HelpTextContainer>
+          <Text mb={2}>
+            In order to 'train' a machine learning model, you need to collect
+            data that is related to what you want to identify. This page
+            displays the data collected by the micro:bits connected to your
+            cloudlet under the <em>Raw Data</em> tab.
+          </Text>
+          <Text>
+            Data will have been provided a class 'label' in the program running
+            on the micro:bit. This label is used to identify what it represents.
+            You should use the <em>Class Labels</em> tab to set a friendly name
+            for each class.
+          </Text>
+        </HelpTextContainer>
+        {getDataQuery.isLoading && (
+          <VStack>
+            <Spinner size={"xl"} />
+            <Heading size={"md"}>Loading Data ...</Heading>
+          </VStack>
+        )}
+        {getDataQuery.isError && (
+          <Container>
+            <Alert status="error">
+              <AlertIcon />
+              <AlertTitle>Error Loading Data</AlertTitle>
+            </Alert>
+          </Container>
+        )}
+        {(getDataQuery.isSuccess || getDataQuery.isIdle) && (
+          <Accordion defaultIndex={[0, 1]} allowMultiple>
+            <AccordionItem>
+              <AccordionButton py={3}>
+                <Heading size={"lg"}>Class Labels</Heading>
+                <Spacer />
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel>{CLASS_SECTION}</AccordionPanel>
+            </AccordionItem>
+            <AccordionItem>
+              <AccordionButton py={3}>
+                <Heading size={"lg"}>Raw Data</Heading>
+                <Spacer />
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel>{RAW_DATA_SECTION}</AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        )}
       </Container>
       <ViewRecordInstanceModal
         viewRecordDisclosure={viewRecordDisclosure}
