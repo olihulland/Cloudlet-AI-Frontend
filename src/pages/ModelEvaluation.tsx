@@ -7,6 +7,7 @@ import {
   Container,
   Flex,
   Heading,
+  IconButton,
   Table,
   TableContainer,
   Tbody,
@@ -14,14 +15,24 @@ import {
   Th,
   Thead,
   Tr,
+  Text,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  Box,
 } from "@chakra-ui/react";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import * as tf from "@tensorflow/tfjs";
 import { Tensor } from "@tensorflow/tfjs";
 import { generateExtension } from "../extension_generation/main";
-import { DataProcessed } from "../data/types";
+import { RecordInstanceProcessed } from "../data/types";
 import { getClassColourScheme } from "../utils/colour";
+import { RawDataSVGLine } from "../components/RawDataSVGLine";
+import { ChevronRightIcon } from "@chakra-ui/icons";
+import { HelpTextContainer } from "../components/HelpTextContainer";
 
 export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
   useEffect(() => {
@@ -89,6 +100,32 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
     return correct / predictions.length;
   }, [predictions]);
 
+  const seenAccuracy = useMemo(() => {
+    if (!workingData?.trainingData || !workingData?.model) {
+      return 0;
+    }
+
+    const model = workingData.model;
+    const trainingData = workingData.trainingData;
+
+    const predArrs = (
+      model.predict(tf.tensor(trainingData.features)) as Tensor
+    ).arraySync();
+
+    const p = (predArrs as number[][]).map((predArr) => {
+      const max = Math.max(...predArr);
+      return predArr.indexOf(max);
+    });
+
+    let correct = 0;
+    p.forEach((pred, index) => {
+      if (pred === trainingData.labels[index]) {
+        correct++;
+      }
+    });
+    return correct / p.length;
+  }, [workingData, workingData?.trainingData]);
+
   const sendModel = async () => {
     if (!workingData?.model) {
       console.error("Model undefined - unable to send");
@@ -119,48 +156,110 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
       <Container maxWidth="container.xl" px={10}>
         <Heading mb={3}>Model Evaluation</Heading>
 
+        <HelpTextContainer>
+          In order to assess a models performance, we need to test it on data
+          that it has not seen before. Below shows the predictions made by the
+          model on the testing data and the accuracy statistics.
+        </HelpTextContainer>
+
+        <Box
+          p={3}
+          borderWidth={1}
+          borderColor={"chakra-subtle-text._dark"}
+          rounded={"md"}
+          mb={3}
+        >
+          <Heading size="md" mb={3}>
+            Statistics
+          </Heading>
+          <StatGroup my={3}>
+            <Stat>
+              <StatLabel>Unseen Data Accuracy</StatLabel>
+              <StatNumber>{Math.round(accuracy * 100)}%</StatNumber>
+              <StatHelpText>
+                The accuracy of the model for the testing data. (
+                {workingData?.testingData?.labels.length} samples)
+              </StatHelpText>
+            </Stat>
+            <Stat>
+              <StatLabel>Seen Data Accuracy</StatLabel>
+              <StatNumber>{Math.round(seenAccuracy * 100)}%</StatNumber>
+              <StatHelpText>
+                The accuracy of the model for the training data. (
+                {workingData?.trainingData?.labels.length} samples)
+              </StatHelpText>
+            </Stat>
+          </StatGroup>
+          <Alert status={"warning"} mb={3}>
+            <AlertIcon />
+            It can be difficult to assess the performance of a model with few
+            data samples. Try adding more data to improve performance and
+            assessment of accuracy, and/or consider increasing the proportion of
+            data used for testing.
+          </Alert>
+        </Box>
+
         {workingData?.testingData?.labels &&
         workingData?.testingData?.labels.length > 0 ? (
           <>
-            <Flex flexDir={"row"} mb={3}>
-              <Heading size={"md"} mr={4}>
-                Accuracy: {Math.round(accuracy * 100)}%
-              </Heading>
-            </Flex>
-
             <TableContainer>
               <Table size={"lg"}>
                 <Thead>
                   <Tr>
                     <Th>Actual</Th>
                     <Th>Predicted</Th>
-                    <Th>Feature Vector</Th>
+                    <Th>Raw Data</Th>
+                    <Th>Features</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {workingData?.testingData?.features.map((feature, index) => (
-                    <Tr key={index}>
-                      <Td>
-                        <Badge
-                          colorScheme={getClassColourScheme(
-                            workingData?.testingData?.labels[index]
-                          )}
-                        >
-                          {indexToName(workingData?.testingData?.labels[index])}
-                        </Badge>
-                      </Td>
-                      <Td>
-                        <Badge
-                          colorScheme={getClassColourScheme(predictions[index])}
-                        >
-                          {indexToName(predictions[index])}
-                        </Badge>
-                      </Td>
-                      <Td>
-                        {feature.map((f: number) => Math.round(f)).join(",")}
-                      </Td>
-                    </Tr>
-                  ))}
+                  {workingData?.testingData?.features.map((feature, index) => {
+                    const raw = (
+                      workingData?.data
+                        ?.record_instances as RecordInstanceProcessed[]
+                    ).find(
+                      (instance) =>
+                        JSON.stringify(instance.featureVector) ===
+                        JSON.stringify(feature)
+                    )?.data;
+
+                    return (
+                      <Tr key={index}>
+                        <Td>
+                          <Badge
+                            colorScheme={getClassColourScheme(
+                              workingData?.testingData?.labels[index]
+                            )}
+                          >
+                            {indexToName(
+                              workingData?.testingData?.labels[index]
+                            )}
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <Badge
+                            colorScheme={getClassColourScheme(
+                              predictions[index]
+                            )}
+                          >
+                            {indexToName(predictions[index])}
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <RawDataSVGLine data={raw ?? []} />
+                        </Td>
+                        <Td>
+                          <IconButton
+                            aria-label={"View feature vector"}
+                            icon={<ChevronRightIcon />}
+                            onClick={() => {
+                              alert(feature.join(", "));
+                            }}
+                          />
+                        </Td>
+                      </Tr>
+                    );
+                  })}
                 </Tbody>
               </Table>
             </TableContainer>

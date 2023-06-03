@@ -556,16 +556,15 @@ export const ModelTraining = ({
                 how this model performs on unseen data until we evaluate it on
                 the next page.
               </HelpTextContainer>
-              {modelHistory.accuracy[modelHistory.accuracy.length - 1] <
-              0.75 ? (
+              {modelHistory.accuracy[modelHistory.accuracy.length - 1] < 0.7 ? (
                 <Alert status="error" mb={3}>
                   <AlertIcon />
-                  <AlertTitle mr={2}>Low Accuracy</AlertTitle>
+                  <AlertTitle mr={2}>Possible Low Accuracy</AlertTitle>
                   <AlertDescription>
-                    Your model isn't very accurate. Try training it again as it
-                    may vary between training runs. You can also try changing
-                    the model configuration, collecting more data, or changing
-                    the pre-processing.
+                    Your model isn't very accurate based on the training data.
+                    Try training it again as it may vary between training runs.
+                    You can also try changing the model configuration,
+                    collecting more data, or changing the pre-processing.
                   </AlertDescription>
                 </Alert>
               ) : null}

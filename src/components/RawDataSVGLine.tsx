@@ -1,6 +1,6 @@
 import { DataPoint } from "../data/types";
 import { Box, HStack, VStack, Text, Flex } from "@chakra-ui/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { colours } from "../utils/colour";
 
 export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
