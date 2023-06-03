@@ -12,6 +12,7 @@ export interface WorkingData {
   trainingProportion?: number;
   numEpochs?: number;
   testingData?: { features: any[]; labels: number[] };
+  trainingData?: { features: any[]; labels: number[] };
 }
 
 export interface APIData {

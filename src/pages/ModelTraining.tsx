@@ -94,6 +94,9 @@ export const ModelTraining = ({
   const toast = useToast();
   const navigate = useNavigate();
 
+  const [retrievedPreviousData, setRetrievedPreviousData] =
+    useState<boolean>(false);
+
   const dataFeatureHash = (data: DataProcessed, features: Feature[]) => {
     const MD5 = new Hashes.MD5();
     const combinedStr = JSON.stringify(data) + JSON.stringify(features);
@@ -136,12 +139,31 @@ export const ModelTraining = ({
             allowNext: true,
           });
         }
+      } else if (setWorkingData) {
+        setWorkingData({
+          ...workingData,
+          model: undefined,
+          modelHistory: undefined,
+          modelValidityDataFeatureHash: undefined,
+        });
       }
     }
   }, []);
 
   const trainingData = useMemo(() => {
     if (!workingData || workingData.data === undefined) return undefined;
+
+    if (
+      !retrievedPreviousData &&
+      workingData &&
+      workingData.trainingData &&
+      workingData.testingData
+    ) {
+      setRetrievedPreviousData(true);
+      setTestingData(workingData.testingData);
+      return workingData.trainingData;
+    }
+
     let features = workingData.data.record_instances.map(
       (instance: any) => instance.featureVector
     );
@@ -290,6 +312,7 @@ export const ModelTraining = ({
                 ),
                 trainingProportion: trainingProportion,
                 testingData: testingData,
+                trainingData: trainingData,
                 numEpochs: numEpochs,
               });
             }
