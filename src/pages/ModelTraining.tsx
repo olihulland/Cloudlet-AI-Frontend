@@ -48,6 +48,7 @@ import {
 import { Line } from "react-chartjs-2";
 import Hashes from "jshashes";
 import { useNavigate } from "react-router-dom";
+import { getClassColourScheme } from "../utils/colour";
 
 ChartJS.register(
   CategoryScale,
@@ -83,7 +84,7 @@ export const ModelTraining = ({
   const [testingData, setTestingData] = useState<
     { features: any[]; labels: number[] } | undefined
   >(undefined);
-  const [numEpochs, setNumEpochs] = useState<number>(30);
+  const [numEpochs, setNumEpochs] = useState<number>(60);
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -119,6 +120,7 @@ export const ModelTraining = ({
         setModel(workingData.model);
         setModelHistory(workingData.modelHistory);
         setTrainingProportion(workingData.trainingProportion);
+        if (workingData.numEpochs) setNumEpochs(workingData.numEpochs);
         if (setStepInfo) {
           setStepInfo({
             ...stepInfo,
@@ -158,6 +160,11 @@ export const ModelTraining = ({
     let trainLabels = [];
     let testFeatures = [];
     let testLabels = [];
+
+    if (trainingProportion === 1) {
+      setTestingData({ features: [], labels: [] });
+      return { features, labels };
+    }
 
     let idealClassCountForTrain = Math.ceil(
       numTraining / labelsPossible.length
@@ -200,7 +207,6 @@ export const ModelTraining = ({
         seen.push(instance.classification);
       }
     });
-    console.log("numClasses", count);
     return count;
   }, [workingData]);
 
@@ -248,7 +254,6 @@ export const ModelTraining = ({
           tf.loadLayersModel(
             `${process.env.REACT_APP_API_URL}/trained-model/${modelID}/model.json`
           ).then((m) => {
-            console.log("set model", m);
             setModel(m);
             setModelHistory(modelHistory);
             if (setWorkingData && workingData && workingData.features) {
@@ -351,6 +356,39 @@ export const ModelTraining = ({
             </Text>
           </Flex>
         </Container>
+        {trainingProportion !== 1 && (
+          <Flex mx={20}>
+            <Flex wrap={"wrap"} mx={5} flex={1} justifyContent={"center"}>
+              {trainingData && trainingData.labels
+                ? trainingData.labels.map((label, i) => (
+                    <Button
+                      as={"div"}
+                      key={i}
+                      colorScheme={getClassColourScheme(label)}
+                      m={1}
+                      borderRadius={"full"}
+                      size={"xs"}
+                    />
+                  ))
+                : null}
+            </Flex>
+            <Spacer />
+            <Flex wrap={"wrap"} mx={5} flex={1} justifyContent={"center"}>
+              {testingData && testingData.labels
+                ? testingData.labels.map((label, i) => (
+                    <Button
+                      as={"div"}
+                      key={i}
+                      colorScheme={getClassColourScheme(label)}
+                      m={1}
+                      borderRadius={"full"}
+                      size={"xs"}
+                    />
+                  ))
+                : null}
+            </Flex>
+          </Flex>
+        )}
 
         <Accordion allowToggle my={5}>
           <AccordionItem>
@@ -364,9 +402,9 @@ export const ModelTraining = ({
               <FormControl id="numEpochs">
                 <FormLabel>Number of Epochs</FormLabel>
                 <NumberInput
-                  defaultValue={numEpochs}
+                  value={numEpochs}
                   min={3}
-                  max={60}
+                  max={100}
                   step={1}
                   onChange={(value) => {
                     if (value) setNumEpochs(parseInt(value));
