@@ -23,7 +23,7 @@ import {
   StatHelpText,
   Box,
 } from "@chakra-ui/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as tf from "@tensorflow/tfjs";
 import { Tensor } from "@tensorflow/tfjs";
@@ -126,29 +126,32 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
     return correct / p.length;
   }, [workingData, workingData?.trainingData]);
 
-  const sendModel = async () => {
-    if (!workingData?.model) {
-      console.error("Model undefined - unable to send");
+  const [extensionUrls, setExtensionUrls] = useState<{
+    ts: string;
+    modelCpp: string;
+    modelH: string;
+  }>();
+  const beginExtensionGeneration = async () => {
+    setExtensionUrls(undefined);
+    if (!workingData || !workingData.model) {
+      console.error("Model undefined - unable to generate extension");
       return;
     }
-    console.log("sending model");
+    const ext = await generateExtension(workingData);
 
-    await workingData.model.save(`${process.env.REACT_APP_API_URL}/model`);
+    const tsBlob = new Blob([ext.ts], { type: "text/plain" });
+    const modelCppBlob = new Blob([ext.modelCpp], { type: "text/plain" });
+    const modelHBlob = new Blob([ext.modelH], { type: "text/plain" });
 
-    console.log("model sent");
-  };
+    const tsUrl = window.URL.createObjectURL(tsBlob);
+    const modelCppUrl = window.URL.createObjectURL(modelCppBlob);
+    const modelHUrl = window.URL.createObjectURL(modelHBlob);
 
-  const getModelFile = async () => {
-    console.log("getting model file");
-    const response = await fetch(
-      `${process.env.REACT_APP_API_URL}/model-header`
-    );
-    // get file sent in response
-    const blob = await response.blob();
-    // create a local URL for it
-    const url = window.URL.createObjectURL(blob);
-    // and open it in a new tab
-    window.open(url);
+    setExtensionUrls({
+      ts: tsUrl,
+      modelCpp: modelCppUrl,
+      modelH: modelHUrl,
+    });
   };
 
   return (
@@ -275,26 +278,64 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
         <Heading mt={6} mb={3}>
           Model Deployment
         </Heading>
-        <Button
-          colorScheme="blue"
-          size="lg"
-          onClick={sendModel}
-          disabled={!workingData?.model}
-          mr={2}
-        >
-          Send Model
-        </Button>
-        <Button colorScheme="orange" size="lg" onClick={getModelFile} mr={2}>
-          Get Model
-        </Button>
-        <Button
-          size={"lg"}
-          onClick={() => {
-            if (workingData) generateExtension(workingData);
-          }}
-        >
-          Generate MakeCode Extension
-        </Button>
+
+        <HelpTextContainer>
+          To make use of your model in a Micro:bit program, a MakeCode extension
+          can be generated and imported into the MakeCode editor by following
+          the steps below.
+        </HelpTextContainer>
+
+        <Alert status={"warning"} mb={3}>
+          <AlertIcon />
+          This process has not be finalised. The model can be exported in the
+          correct format and the typescript code for the extension can be
+          generated. The remainder of the process must be completed locally to
+          enable the build (due to limitations in the current MakeCode editor
+          build process online).
+        </Alert>
+
+        <Flex my={2} gap={2}>
+          <Button
+            size={"lg"}
+            colorScheme={"blue"}
+            onClick={beginExtensionGeneration}
+          >
+            Generate MakeCode Extension
+          </Button>
+        </Flex>
+        {extensionUrls && (
+          <>
+            <Heading size={"md"} my={3}>
+              Download Extension
+            </Heading>
+            <Flex my={2} gap={2}>
+              <Button
+                colorScheme={"gray"}
+                onClick={() => {
+                  window.open(extensionUrls.ts, "_blank");
+                }}
+              >
+                Typescript Extension
+              </Button>
+              <Button
+                colorScheme={"gray"}
+                onClick={() => {
+                  window.open(extensionUrls.modelCpp, "_blank");
+                }}
+              >
+                Model C++ Code
+              </Button>
+              <Button
+                colorScheme={"gray"}
+                onClick={() => {
+                  window.open(extensionUrls.modelH, "_blank");
+                }}
+              >
+                Model Header File
+              </Button>
+            </Flex>
+          </>
+        )}
       </Container>
     </>
   );

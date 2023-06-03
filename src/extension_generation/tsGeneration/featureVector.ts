@@ -1,6 +1,6 @@
-import { CommonFeatureCalculator, WorkingData } from "../data/types";
-import { CommonOperations } from "../data/pre-processing/CommonOperations";
-import { getKeysFromRecordInstance } from "./main";
+import { CommonFeatureCalculator, WorkingData } from "../../data/types";
+import { CommonOperations } from "../../data/pre-processing/CommonOperations";
+import { getKeysFromRecordInstance } from "../main";
 
 export const generateFeatureVector = (data: WorkingData): string => {
   if (!data.features) throw new Error("No features");

@@ -1,6 +1,6 @@
-import { WorkingData } from "../data/types";
-import { getKeysFromRecordInstance } from "./main";
-import { ProcessingPresets } from "../data/pre-processing/presets";
+import { WorkingData } from "../../data/types";
+import { getKeysFromRecordInstance } from "../main";
+import { ProcessingPresets } from "../../data/pre-processing/presets";
 
 export const blocksGenerator = (wd: WorkingData) => {
   if (!wd.data?.record_instances[0]) throw new Error("No data");
@@ -69,26 +69,28 @@ ${presets}
     return rec;
   }
   
+  //% shim=predict::predict
+  export function _predict(featureVector: string, maxClassNum: number): Classification | PredictionError {
+    return -1;
+  }
+  
   //% block="predict based on feature vector $featureVector"
-  //% featureVector.shadow="generateFeatureVector"
   export function predict(featureVector: number[]): Classification {
-    // TODO IMPLEMENT THE PREDICTION HERE!
-    return Classification.Circle;
+    return _predict(featureVector.join(','), 2);
   }
 `;
 };
 
-const movementPreset = `
-    //% block="initialise for movement"
-    export function setUpForMovement() {
-      onShouldAddDataPoint = (recording: Recording) => {
-        const dataPoint = {
-          x: input.acceleration(Dimension.X),
-          y: input.acceleration(Dimension.Y),
-          z: input.acceleration(Dimension.Z),
-          s: input.acceleration(Dimension.Strength),
-        }
-        recording.addDataPoint(dataPoint);
+const movementPreset = `//% block="initialise for movement"
+  export function setUpForMovement() {
+    onShouldAddDataPoint = (recording: Recording) => {
+      const dataPoint = {
+        x: input.acceleration(Dimension.X),
+        y: input.acceleration(Dimension.Y),
+        z: input.acceleration(Dimension.Z),
+        s: input.acceleration(Dimension.Strength),
       }
+      recording.addDataPoint(dataPoint);
     }
+  }
 `;

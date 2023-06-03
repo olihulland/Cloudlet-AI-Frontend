@@ -1,4 +1,4 @@
-import { WorkingData } from "../data/types";
+import { WorkingData } from "../../data/types";
 
 export const generateClasses = (wd: WorkingData) => {
   return `
