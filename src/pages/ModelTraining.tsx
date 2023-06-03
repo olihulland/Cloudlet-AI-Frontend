@@ -30,6 +30,9 @@ import {
   AccordionPanel,
   NumberIncrementStepper,
   Select,
+  Switch,
+  AlertDescription,
+  AlertTitle,
 } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
@@ -93,6 +96,8 @@ export const ModelTraining = ({
 
   const toast = useToast();
   const navigate = useNavigate();
+
+  const [showLoss, setShowLoss] = useState<boolean>(false);
 
   const [retrievedPreviousData, setRetrievedPreviousData] =
     useState<boolean>(false);
@@ -520,34 +525,74 @@ export const ModelTraining = ({
           </Button>
         </Center>
         <Box mt={4}>
-          <Heading>Training History</Heading>
+          <Flex>
+            <Heading>Training History</Heading>
+            <Spacer />
+            <Text mr={2}>Show Loss:</Text>
+            <Switch
+              isChecked={showLoss}
+              onChange={(e) => setShowLoss(e.target.checked)}
+              colorScheme="orange"
+              size="lg"
+              mr={2}
+            />
+          </Flex>
           {modelHistory ? (
             <>
-              <Text my={3}>
-                This graph shows the accuracy and loss of the model during
-                training based only on the training data. A better model has
-                higher accuracy and lower loss. We can't see how this model
-                performs on unseen data until we evaluate it on the next page.
-              </Text>
+              {showLoss && (
+                <Alert status="info" my={3} colorScheme={"orange"}>
+                  <AlertIcon />
+                  <AlertTitle mr={2}>Loss</AlertTitle>
+                  <AlertDescription>
+                    A measure of how far the model's predictions are from the
+                    actual class. A lower loss is better.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <HelpTextContainer>
+                This graph shows the accuracy of the model during training based
+                only on the training data. We expect that this will rise
+                throughout the training - the graph should go up. We can't see
+                how this model performs on unseen data until we evaluate it on
+                the next page.
+              </HelpTextContainer>
+              {modelHistory.accuracy[modelHistory.accuracy.length - 1] <
+              0.75 ? (
+                <Alert status="error" mb={3}>
+                  <AlertIcon />
+                  <AlertTitle mr={2}>Low Accuracy</AlertTitle>
+                  <AlertDescription>
+                    Your model isn't very accurate. Try training it again as it
+                    may vary between training runs. You can also try changing
+                    the model configuration, collecting more data, or changing
+                    the pre-processing.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
               <Line
                 options={{
                   responsive: true,
+                  plugins: {
+                    legend: {
+                      display: showLoss,
+                    },
+                  },
                   scales: {
                     yLoss: {
                       type: "linear" as const,
-                      display: true,
-                      position: "left" as const,
+                      display: showLoss,
+                      position: "right" as const,
                       title: {
                         display: true,
                         text: "Loss",
-                        color: "darkred",
+                        color: "darkorange",
                       },
                       min: 0,
                     },
                     yAccuracy: {
                       type: "linear" as const,
                       display: true,
-                      position: "right" as const,
+                      position: "left" as const,
                       title: {
                         display: true,
                         text: "Accuracy",
@@ -566,22 +611,32 @@ export const ModelTraining = ({
                 }}
                 data={{
                   labels: modelHistory.loss.map((_: any, n: any) => n + 1),
-                  datasets: [
-                    {
-                      label: "Loss",
-                      data: modelHistory.loss,
-                      borderColor: "red",
-                      backgroundColor: "red",
-                      yAxisID: "yLoss",
-                    },
-                    {
-                      label: "Accuracy",
-                      data: modelHistory.accuracy,
-                      borderColor: "green",
-                      backgroundColor: "green",
-                      yAxisID: "yAccuracy",
-                    },
-                  ],
+                  datasets: showLoss
+                    ? [
+                        {
+                          label: "Loss",
+                          data: modelHistory.loss,
+                          borderColor: "darkorange",
+                          backgroundColor: "darkorange",
+                          yAxisID: "yLoss",
+                        },
+                        {
+                          label: "Accuracy",
+                          data: modelHistory.accuracy,
+                          borderColor: "green",
+                          backgroundColor: "green",
+                          yAxisID: "yAccuracy",
+                        },
+                      ]
+                    : [
+                        {
+                          label: "Accuracy",
+                          data: modelHistory.accuracy,
+                          borderColor: "green",
+                          backgroundColor: "green",
+                          yAxisID: "yAccuracy",
+                        },
+                      ],
                 }}
               />
             </>
