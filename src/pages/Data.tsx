@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   Alert,
   AlertTitle,
+  AlertDescription,
   AlertIcon,
   Container,
   Heading,
@@ -146,10 +147,10 @@ export const Data = ({
           <Stat>
             <StatLabel>Identify Micro:bits</StatLabel>
             <StatNumber>
-              {/*<Button onClick={ident}>Identify Micro:bits</Button>*/}
               <IconButton
                 aria-label={"Identify Micro:bits"}
                 icon={<FiRadio />}
+                onClick={ident}
               />
             </StatNumber>
             <StatHelpText></StatHelpText>
@@ -343,26 +344,40 @@ export const Data = ({
             </Alert>
           </Container>
         )}
-        {(getDataQuery.isSuccess || getDataQuery.isIdle) && (
-          <Accordion defaultIndex={[0, 1]} allowMultiple>
-            <AccordionItem>
-              <AccordionButton py={3}>
-                <Heading size={"lg"}>Class Labels</Heading>
-                <Spacer />
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel>{CLASS_SECTION}</AccordionPanel>
-            </AccordionItem>
-            <AccordionItem>
-              <AccordionButton py={3}>
-                <Heading size={"lg"}>Raw Data</Heading>
-                <Spacer />
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel>{RAW_DATA_SECTION}</AccordionPanel>
-            </AccordionItem>
-          </Accordion>
-        )}
+        {(getDataQuery.isSuccess || getDataQuery.isIdle) &&
+          getDataQuery.data?.record_instances &&
+          getDataQuery.data?.record_instances.length > 0 && (
+            <Accordion defaultIndex={[0, 1]} allowMultiple>
+              <AccordionItem>
+                <AccordionButton py={3}>
+                  <Heading size={"lg"}>Class Labels</Heading>
+                  <Spacer />
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel>{CLASS_SECTION}</AccordionPanel>
+              </AccordionItem>
+              <AccordionItem>
+                <AccordionButton py={3}>
+                  <Heading size={"lg"}>Raw Data</Heading>
+                  <Spacer />
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel>{RAW_DATA_SECTION}</AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          )}
+        {(getDataQuery.isSuccess || getDataQuery.isIdle) &&
+          getDataQuery.data?.record_instances &&
+          getDataQuery.data?.record_instances.length < 1 && (
+            <Alert status="info">
+              <AlertIcon />
+              <AlertTitle>No data has been collected</AlertTitle>
+              <AlertDescription>
+                Please ensure that your micro:bits are connected to the cloudlet
+                and running the appropriate program.
+              </AlertDescription>
+            </Alert>
+          )}
       </Container>
       <ViewRecordInstanceModal
         viewRecordDisclosure={viewRecordDisclosure}

@@ -9,6 +9,7 @@ export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
 
   // combine all bits of data into one array unless key is "n"
   const combinedData = useMemo(() => {
+    if (data.length === 0) return [];
     let combinedData: number[] = [];
     data.forEach((d) => {
       Object.keys(d).forEach((key) => {
@@ -19,15 +20,18 @@ export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
   }, [data]);
 
   const top = useMemo(() => {
+    if (combinedData.length === 0) return 0;
     return Math.max(...combinedData) + 200;
   }, [combinedData]);
 
   const bottom = useMemo(() => {
+    if (combinedData.length === 0) return 0;
     return Math.min(...combinedData) - 200;
   }, [combinedData]);
 
   // all keys except "n" sorted by their value at the last data point
   const keys = useMemo(() => {
+    if (data.length === 0) return [];
     let k = Object.keys(data[0]).filter((key) => key !== "n");
     return k.sort((a, b) => {
       return data[data.length - 1][b] - data[data.length - 1][a];
