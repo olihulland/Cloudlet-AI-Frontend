@@ -29,6 +29,7 @@ import {
   FormLabel,
   AccordionPanel,
   NumberIncrementStepper,
+  Select,
 } from "@chakra-ui/react";
 import * as React from "react";
 import * as tf from "@tensorflow/tfjs";
@@ -49,6 +50,8 @@ import { Line } from "react-chartjs-2";
 import Hashes from "jshashes";
 import { useNavigate } from "react-router-dom";
 import { getClassColourScheme } from "../utils/colour";
+import { HelpTextContainer } from "../components/HelpTextContainer";
+import { ProcessingPresets } from "../data/pre-processing/presets";
 
 ChartJS.register(
   CategoryScale,
@@ -86,6 +89,8 @@ export const ModelTraining = ({
   >(undefined);
   const [numEpochs, setNumEpochs] = useState<number>(60);
 
+  const [preset, setPreset] = useState<ProcessingPresets>();
+
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -102,6 +107,10 @@ export const ModelTraining = ({
       workingData.data.record_instances.length === 0
     ) {
       navigate("/pre-processing");
+    }
+
+    if (workingData && workingData.selectedPreset) {
+      setPreset(workingData.selectedPreset);
     }
 
     if (
@@ -224,12 +233,26 @@ export const ModelTraining = ({
 
     setTraining(true);
 
-    const modelSchema = getMovementModel(
-      trainingData.features,
-      trainingData.labels,
-      numClasses,
-      numEpochs
-    );
+    let modelSchema;
+    switch (preset) {
+      case ProcessingPresets.movement:
+        modelSchema = getMovementModel(
+          trainingData.features,
+          trainingData.labels,
+          numClasses,
+          numEpochs
+        );
+        break;
+      default:
+        console.error("Unknown preset, defaulting to movement");
+        modelSchema = getMovementModel(
+          trainingData.features,
+          trainingData.labels,
+          numClasses,
+          numEpochs
+        );
+    }
+
     requestTrainModel(modelSchema).then((res) => {
       if (res.status < 200 || res.status >= 300) {
         res.text().then((text) => {
@@ -290,13 +313,12 @@ export const ModelTraining = ({
         <Heading size="md" mb={2}>
           Training/Test Split
         </Heading>
-        <Alert status="info" variant="subtle" m={3} bgColor={"gray.100"}>
-          <AlertIcon />
+        <HelpTextContainer>
           The data is split into training and test sets. The training set is
           used to train the model, and the test set is used to evaluate the
           model's performance on the next page. Use the slider to adjust the
           proportion of the data that is used for training.
-        </Alert>
+        </HelpTextContainer>
 
         <Container maxW={"container.md"}>
           <Flex flexDir={"row"}>
@@ -389,6 +411,44 @@ export const ModelTraining = ({
             </Flex>
           </Flex>
         )}
+
+        <Heading size="md" my={2}>
+          Model Configuration
+        </Heading>
+        <HelpTextContainer>
+          Much like the pre-processing step, the way we configure the model and
+          its training process depends on the data and the task at hand.
+          Different model 'architectures' can be used. You can try out a number
+          of configurations to see which produces the best results. Try one that
+          fits your use case first.
+        </HelpTextContainer>
+
+        <Container maxW={"container.md"}>
+          <FormControl id="modelArchitecture" mt={3}>
+            <FormLabel>Model Configuration - Use Case</FormLabel>
+            <Select
+              onChange={(e) => {
+                setPreset(e.target.value as ProcessingPresets);
+              }}
+              value={preset}
+              mt={3}
+            >
+              {(Object.values(ProcessingPresets) as Array<ProcessingPresets>)
+                .filter((preset) => preset !== ProcessingPresets.custom)
+                .map((preset) => {
+                  return (
+                    <option key={preset} value={preset}>
+                      {preset}
+                    </option>
+                  );
+                })}
+            </Select>
+            <FormHelperText>
+              This configures the model and training process to produce good
+              results.
+            </FormHelperText>
+          </FormControl>
+        </Container>
 
         <Accordion allowToggle my={5}>
           <AccordionItem>
