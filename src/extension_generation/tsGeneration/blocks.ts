@@ -11,7 +11,6 @@ export const blocksGenerator = (wd: WorkingData) => {
     wd.selectedPreset === ProcessingPresets.movement
       ? "//% weight=100"
       : `//% advanced=true
-  //% group="Presets - if using custom data points, construct your own using the above blocks"
   //% weight=0`
   }
   ${movementPreset}
@@ -52,6 +51,8 @@ ${presets}
   //% block="generate feature vector from $recording"
   //% blockId=generateFeatureVector
   //% recording.shadow="record"
+  //% group="Pre-processing"
+  //% weight=80
   export function generateFeatureVector(recording: Recording): number[] {
     return featureVector(recording);
   }
@@ -59,6 +60,8 @@ ${presets}
   //% block="record for $dur seconds"
   //% dur.defl=2
   //% blockId=record
+  //% group="Recording"
+  //% weight=90
   export function record(dur: number) {
     const rec = new Recording();
     const startTime = input.runningTime();
@@ -75,6 +78,8 @@ ${presets}
   }
   
   //% block="predict based on feature vector $featureVector"
+  //% group="ML Prediction"
+  //% weight=70
   export function predict(featureVector: number[]): Classification {
     return _predict(featureVector.join(','), 2);
   }
@@ -82,6 +87,7 @@ ${presets}
 };
 
 const movementPreset = `//% block="initialise for movement"
+  //% group="Prepare for recording"
   export function setUpForMovement() {
     onShouldAddDataPoint = (recording: Recording) => {
       const dataPoint = {

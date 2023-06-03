@@ -4,7 +4,7 @@ import { blocksGenerator } from "./tsGeneration/blocks";
 import { generateInterfaces } from "./tsGeneration/interfaces";
 import { generateClasses } from "./tsGeneration/classes";
 import { generateFeatureVector } from "./tsGeneration/featureVector";
-import { generateEnums } from "./tsGeneration/enums";
+import { generateEnumBlocks, generateEnums } from "./tsGeneration/enums";
 
 export const getKeysFromRecordInstance = (record: RecordInstance) => {
   let keys = Object.keys(record.data[0]);
@@ -24,7 +24,7 @@ export const generateExtension = async (
 
   const extensionTypescript = boilerplate(
     "movement",
-    blocksGenerator(data),
+    blocksGenerator(data) + "\n" + generateEnumBlocks(data),
     generateInterfaces(data) +
       "\n" +
       generateClasses(data) +

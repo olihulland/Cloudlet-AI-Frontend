@@ -10,6 +10,7 @@ export const boilerplate = (
 /* --- enums --- */
 ${enums ?? "// none defined"}  
 
+//% groups=["Prepare for recording", "Recording", "Pre-processing", "ML Prediction", "Possible prediction output values"]
 namespace ML_${name.substring(0, 1).toUpperCase() + name.slice(1)} {
   
   /* --- state --- */
