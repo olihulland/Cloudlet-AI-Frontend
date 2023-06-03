@@ -84,7 +84,12 @@ export interface TrainingRequestData {
       activation: string;
     }[];
     compile: {
-      optimizer: string;
+      optimizer:
+        | string
+        | {
+            type: string;
+            learningRate: number;
+          };
       loss: string;
       metrics?: string[];
     };

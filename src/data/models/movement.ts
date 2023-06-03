@@ -28,7 +28,10 @@ export const getMovementModel = (
         },
       ],
       compile: {
-        optimizer: "adam",
+        optimizer: {
+          type: "adam",
+          learningRate: 0.001,
+        },
         loss: "categorical_crossentropy",
         metrics: ["accuracy"],
       },
