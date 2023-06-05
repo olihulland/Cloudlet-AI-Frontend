@@ -23,6 +23,7 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
 import { deleteRecord } from "../data/api";
+import moment from "moment";
 
 interface Props {
   viewRecordDisclosure: any;
@@ -80,6 +81,16 @@ export const ViewRecordInstanceModal = ({
               <Text>
                 <b>Number of Data Points: </b> {openRecordInstance?.data.length}
               </Text>
+
+              {openRecordInstance?.utc && (
+                <Text>
+                  <b>Time Recorded: </b>{" "}
+                  {moment
+                    .utc(openRecordInstance?.utc)
+                    .local()
+                    .format("MMMM Do YYYY, h:mm:ss a")}
+                </Text>
+              )}
             </Box>
             <Spacer />
             <IconButton

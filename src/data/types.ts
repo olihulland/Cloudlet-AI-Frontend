@@ -42,6 +42,7 @@ export interface RecordInstance {
   classification: number;
   deviceID: string;
   uniqueID: string;
+  utc?: string;
 }
 
 export interface RecordInstanceProcessed extends RecordInstance {
