@@ -51,7 +51,11 @@ import { useMutation, useQuery } from "react-query";
 import { getData, ident, setClassName } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
-import { getClassName, getFriendlyMicrobitID } from "../data/utils";
+import {
+  getClassName,
+  getClassNameUnsafe,
+  getFriendlyMicrobitID,
+} from "../data/utils";
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import { RawDataSVGLine } from "../components/RawDataSVGLine";
 import { getClassColourScheme } from "../utils/colour";
@@ -74,11 +78,14 @@ export const Data = ({
   const [openRecordInstance, setOpenRecordInstance] =
     useState<RecordInstance>();
 
+  const defStepInfo = {
+    currentPhase: "Data Collection",
+    nextStep: "/pre-processing",
+    allowNext: false,
+  };
+
   useEffect(() => {
-    setStepInfo({
-      currentPhase: "Data Collection",
-      nextStep: "/pre-processing",
-    });
+    setStepInfo(defStepInfo);
   }, [setStepInfo]);
 
   // set working data based on selected data
@@ -105,6 +112,34 @@ export const Data = ({
       }, [] as number[])
       .sort();
   }, [getDataQuery.data]);
+
+  const atLeastTwoOfEachClass = useMemo(() => {
+    if (!workingData?.data?.record_instances || !classesList) return false;
+    for (let c of classesList) {
+      if (
+        workingData?.data?.record_instances.filter(
+          (ri) => ri.classification === c
+        ).length < 2
+      )
+        return false;
+    }
+    return true;
+  }, [workingData?.data, classesList]);
+
+  const namesUndefined = useMemo(() => {
+    return classesList?.some((classID) => {
+      if (!getDataQuery.data) return true;
+      const name = getClassNameUnsafe(classID, getDataQuery.data);
+      return name == null || name === "";
+    });
+  }, [classesList]);
+
+  useEffect(() => {
+    setStepInfo({
+      ...defStepInfo,
+      allowNext: atLeastTwoOfEachClass && !namesUndefined,
+    });
+  }, [atLeastTwoOfEachClass, namesUndefined]);
 
   const STATS_BANNER = (
     <Flex gap={3} mb={5} justifyContent={"space-evenly"}>
@@ -162,6 +197,29 @@ export const Data = ({
 
   const CLASS_SECTION = (
     <Box mb={3}>
+      {namesUndefined && (
+        <Alert status="warning" mb={3}>
+          <AlertIcon />
+          <AlertTitle mr={2}>Some classes have not been named</AlertTitle>
+          <AlertDescription>
+            You must name all classes before you can continue
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!atLeastTwoOfEachClass && (
+        <Alert status="warning" mb={3}>
+          <AlertIcon />
+          <AlertTitle mr={2}>
+            Some classes have less than 2 recordings
+          </AlertTitle>
+          <AlertDescription>
+            The model will not be able to train with less than 2 recordings per
+            class
+          </AlertDescription>
+        </Alert>
+      )}
+
       <TableContainer>
         <Table>
           <Thead>

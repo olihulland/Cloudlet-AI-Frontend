@@ -61,7 +61,7 @@ export const ModelEvaluation = ({ setStepInfo, workingData }: PageProps) => {
       return "";
     }
     const labels = [...workingData.data.classes].sort((a, b) => a.id - b.id);
-    return labels[index].name;
+    return labels[index]?.name ?? index.toString();
   };
 
   const predictions = useMemo(() => {

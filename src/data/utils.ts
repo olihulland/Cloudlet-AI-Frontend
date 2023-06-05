@@ -21,3 +21,13 @@ export const getClassName = (
     ? classification
     : classInfo.name;
 };
+
+export const getClassNameUnsafe = (
+  classification: number,
+  data: APIData | DataProcessed
+) => {
+  const classInfo = data.classes.find(
+    (classInfo) => classInfo.id.toString() === classification.toString()
+  );
+  return classInfo?.name;
+};
