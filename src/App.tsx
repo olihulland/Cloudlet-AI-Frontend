@@ -37,39 +37,7 @@ export const App = () => {
   >();
   const [workingData, setWorkingData] = useState<WorkingData | undefined>();
 
-  const [socketInstance, setSocketInstance] = useState<any>();
-
   const queryClient = new QueryClient();
-
-  // TODO only have this fetching new data when on the data page
-  // websocket for when data updated
-  useEffect(() => {
-    const socket = io(`${process.env.REACT_APP_API_WS}`, {
-      transports: ["websocket"],
-    });
-
-    setSocketInstance(socket);
-
-    socket.on("connect", () => {
-      console.log("ws: connect websocket");
-    });
-
-    socket.on("disconnect", (data) => {
-      console.log("ws: disconnect ws", data);
-    });
-
-    socket.on("data_update", (dataStr) => {
-      const data = JSON.parse(dataStr);
-      console.log("ws: data update");
-      if (data.queries_updated) {
-        queryClient.invalidateQueries({ queryKey: data.queries_updated });
-      }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

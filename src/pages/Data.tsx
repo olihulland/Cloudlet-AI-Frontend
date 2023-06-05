@@ -47,7 +47,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { PageProps } from "../App";
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getData, ident, setClassName } from "../data/api";
 import { APIData, RecordInstance } from "../data/types";
 import { ViewRecordInstanceModal } from "../components/ViewRecordInstanceModal";
@@ -61,6 +61,7 @@ import { RawDataSVGLine } from "../components/RawDataSVGLine";
 import { getClassColourScheme } from "../utils/colour";
 import { FiRadio } from "react-icons/fi";
 import { HelpTextContainer } from "../components/HelpTextContainer";
+import { io } from "socket.io-client";
 
 export const Data = ({
   setStepInfo,
@@ -73,6 +74,37 @@ export const Data = ({
   const classNameMutation = useMutation({
     mutationFn: setClassName,
   });
+
+  const queryClient = useQueryClient();
+
+  const [socketInstance, setSocketInstance] = useState<any>();
+  useEffect(() => {
+    const socket = io(`${process.env.REACT_APP_API_WS}`, {
+      transports: ["websocket"],
+    });
+
+    setSocketInstance(socket);
+
+    socket.on("connect", () => {
+      console.log("ws: connect websocket");
+    });
+
+    socket.on("disconnect", (data) => {
+      console.log("ws: disconnect ws", data);
+    });
+
+    socket.on("data_update", (dataStr) => {
+      const data = JSON.parse(dataStr);
+      console.log("ws: data update");
+      if (data.queries_updated) {
+        queryClient.invalidateQueries({ queryKey: data.queries_updated });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const viewRecordDisclosure = useDisclosure();
   const [openRecordInstance, setOpenRecordInstance] =

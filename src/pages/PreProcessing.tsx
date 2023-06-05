@@ -191,7 +191,7 @@ export const PreProcessing = ({
                   in advanced mode.
                 </Text>
                 <Spacer />
-                <Center>
+                <Center ml={3}>
                   <Button
                     onClick={() => {
                       setAdvancedMode(true);
