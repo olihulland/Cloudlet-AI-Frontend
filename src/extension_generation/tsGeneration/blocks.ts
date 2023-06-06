@@ -6,9 +6,12 @@ export const blocksGenerator = (wd: WorkingData) => {
   if (!wd.data?.record_instances[0]) throw new Error("No data");
   const keys = getKeysFromRecordInstance(wd.data.record_instances[0]);
 
+  const numClasses = wd.data.classes.length;
+
+  // have it always be movement preset for now
   let presets = `
   ${
-    wd.selectedPreset === ProcessingPresets.movement
+    wd.selectedPreset === ProcessingPresets.movement || true
       ? "//% weight=100"
       : `//% advanced=true
   //% weight=0`
@@ -81,7 +84,7 @@ ${presets}
   //% group="ML Prediction"
   //% weight=70
   export function predict(featureVector: number[]): Classification {
-    return _predict(featureVector.join(','), 2);
+    return _predict(featureVector.join(','), ${numClasses - 1});
   }
 `;
 };
