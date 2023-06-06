@@ -256,6 +256,13 @@ export const PreProcessing = ({
                   <AccordionIcon />
                 </AccordionButton>
                 <AccordionPanel>
+                  <HelpTextContainer>
+                    This graph plots the feature vectors after they have been
+                    calculated. Here we can see if different classes exhibit
+                    different patterns in the data. If they do, then we can be
+                    confident that the model will be able to learn to
+                    distinguish between them.
+                  </HelpTextContainer>
                   <PreProcessingGraph
                     features={features}
                     workingData={workingData}

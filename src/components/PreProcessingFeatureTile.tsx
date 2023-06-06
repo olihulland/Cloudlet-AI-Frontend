@@ -351,7 +351,7 @@ return 0;`,
                 </Modal>
               </>
             )}
-            <Flex mt={2} wrap={"wrap"}>
+            <Flex mt={2} wrap={"wrap"} gap={2}>
               <Button
                 leftIcon={<RepeatIcon />}
                 onClick={() => {

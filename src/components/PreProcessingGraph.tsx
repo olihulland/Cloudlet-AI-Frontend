@@ -38,6 +38,19 @@ export const PreProcessingGraph = ({
       backgroundColor: string;
     }[] = [];
 
+    // data normalised feature by feature
+    let featureRanges = features.map((f) => {
+      let max = -Infinity;
+      let min = Infinity;
+      workingData?.data?.record_instances.forEach((instance) => {
+        const value = solveFeature(f, instance);
+        if (value > max) max = value;
+        if (value < min) min = value;
+      });
+      return { max, min, range: max - min };
+    });
+    console.log(featureRanges);
+
     classes.forEach((c, i) => {
       let d: {
         x: string;
@@ -51,9 +64,11 @@ export const PreProcessingGraph = ({
         .forEach((instance) => {
           features.forEach((feature, index) => {
             const value = solveFeature(feature, instance);
+            const normalisedValue =
+              (value - featureRanges[index].min) / featureRanges[index].range;
             d.push({
               x: feature.name,
-              y: value,
+              y: normalisedValue,
             });
           });
         });
@@ -64,30 +79,6 @@ export const PreProcessingGraph = ({
         data: d,
       });
     });
-
-    // TODO normalise by feature - maybe easier to do at start before splitting by classification!
-    // const combinedData = data.map((d) => d.data).flat();
-    // const featureRanges: {
-    //   fName: string;
-    //   min: number;
-    //   max: number;
-    //   range: number;
-    // }[] = [];
-    // features.forEach((f, i) => {
-    //   const values = combinedData.filter((d) => d.x === f.name).map((d) => d.y);
-    //   featureRanges.push({
-    //     fName: f.name,
-    //     min: Math.min(...values),
-    //     max: Math.max(...values),
-    //     range: Math.max(...values) - Math.min(...values),
-    //   });
-    // });
-    // console.log("feature ranges", featureRanges);
-    //
-    // const biggestRange = featureRanges.reduce((prev, curr) =>
-    //   prev.range > curr.range ? prev : curr
-    // );
-    // console.log("biggest range", biggestRange);
 
     return data;
   }, [workingData, features, classes]);
@@ -101,6 +92,19 @@ export const PreProcessingGraph = ({
             x: {
               type: "category",
               labels: features?.map((f) => f.name),
+              title: {
+                display: true,
+                text: "Feature",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Value (plotted to be normalised by feature)",
+              },
+              ticks: {
+                display: false,
+              },
             },
           },
         }}
