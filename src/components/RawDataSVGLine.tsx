@@ -1,6 +1,6 @@
 import { DataPoint } from "../data/types";
 import { Box, HStack, VStack, Text, Flex } from "@chakra-ui/react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { colours } from "../utils/colour";
 
 export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
@@ -29,6 +29,11 @@ export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
     return Math.min(...combinedData) - 200;
   }, [combinedData]);
 
+  const range = useMemo(() => {
+    if (bottom < 0) return top + Math.abs(bottom);
+    return top - bottom;
+  }, [top, bottom]);
+
   // all keys except "n" sorted by their value at the last data point
   const keys = useMemo(() => {
     if (data.length === 0) return [];
@@ -51,8 +56,8 @@ export const RawDataSVGLine = ({ data }: { data: DataPoint[] }) => {
                 points={`
                 ${data.map((d, i) => {
                   return `${(width / data.length) * i},${-(
-                    (height / (top - bottom)) * d[key] +
-                    (height / (top - bottom)) * bottom
+                    ((height * 0.8) / range) * d[key] -
+                    height / 2
                   )}`;
                 })}
               `}
